@@ -1,0 +1,19 @@
+"""Redis connection pool for sessions, OTPs, rate limiting, and caching."""
+
+# pyrefly: ignore [missing-import]
+import redis.asyncio as redis
+
+from app.config import get_settings
+
+settings = get_settings()
+
+redis_pool = redis.ConnectionPool.from_url(
+    settings.REDIS_URL,
+    decode_responses=True,
+    max_connections=50,
+)
+
+
+def get_redis() -> redis.Redis:
+    """Get a Redis client from the connection pool."""
+    return redis.Redis(connection_pool=redis_pool)
