@@ -38,6 +38,10 @@ import {
   Film,
   Music,
   Bookmark,
+  Volume2,
+  VolumeX,
+  Pause,
+  Disc,
 } from "lucide-react";
 import {
   FEATURED_TALENT,
@@ -56,9 +60,737 @@ import ShowreelModal from "@/components/ShowreelModal";
 import PitchModal from "@/components/PitchModal";
 import CreatePostModal from "@/components/CreatePostModal";
 import { InstagramDmIcon } from "@/components/Navigation";
-import InstagramStoriesBar from "@/components/feed/InstagramStoriesBar";
+import CineStoriesSection from "@/components/CineStoriesSection";
+
+interface CineInstagramReelCardProps {
+  reel: {
+    id: string;
+    creator: {
+      name: string;
+      craft: string;
+      avatar: string;
+      verified?: boolean;
+    };
+    title: string;
+    description: string;
+    videoUrl: string;
+    audioUrl?: string;
+    thumbnailUrl: string;
+    category: string;
+    soundTrack: string;
+    likes: number;
+    commentsCount: number;
+    shares: number;
+    isLiked: boolean;
+  };
+  isActive: boolean;
+  isMuted: boolean;
+  onToggleMute: () => void;
+  onToggleLike: (id: string) => void;
+  onOpenComments: (reel: any) => void;
+  onShare: (reel: any) => void;
+  onToggleSave: (id: string) => void;
+  isSaved: boolean;
+  isFollowing: boolean;
+  onToggleFollow: (name: string) => void;
+  onShowToast: (msg: string) => void;
+  onOpenPostModal: () => void;
+}
+
+function CineInstagramReelCard({
+  reel,
+  isActive,
+  isMuted,
+  onToggleMute,
+  onToggleLike,
+  onOpenComments,
+  onShare,
+  onToggleSave,
+  isSaved,
+  isFollowing,
+  onToggleFollow,
+  onShowToast,
+  onOpenPostModal,
+}: CineInstagramReelCardProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const lastTapRef = useRef<number>(0);
+  const doubleTapTimerRef = useRef<any>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showBigHeart, setShowBigHeart] = useState(false);
+  const [heartPos, setHeartPos] = useState({ x: 50, y: 50 });
+  const [playPauseState, setPlayPauseState] = useState<"play" | "pause" | null>(null);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+  // Auto-play/pause when becoming active/inactive
+  useEffect(() => {
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.muted = isMuted;
+      if (audio) {
+        audio.muted = isMuted;
+        audio.currentTime = video.currentTime;
+      }
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            if (audio && !isMuted) {
+              audio.play().catch(() => {});
+            }
+          })
+          .catch(() => {
+            // Browser restricted unmuted autoplay; fallback to muted
+            video.muted = true;
+            video.play().then(() => setIsPlaying(true)).catch(() => {});
+          });
+      }
+    } else {
+      video.pause();
+      if (audio) audio.pause();
+      setIsPlaying(false);
+      video.currentTime = 0;
+      if (audio) audio.currentTime = 0;
+      setProgress(0);
+    }
+  }, [isActive]);
+
+  // Sync mute changes
+  useEffect(() => {
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    if (video) video.muted = isMuted;
+    if (audio) {
+      audio.muted = isMuted;
+      if (isActive && !isMuted && isPlaying) {
+        audio.currentTime = video?.currentTime || 0;
+        audio.play().catch(() => {});
+      } else if (isMuted) {
+        audio.pause();
+      }
+    }
+  }, [isMuted, isActive, isPlaying]);
+
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    setProgress((video.currentTime / video.duration) * 100);
+
+    const audio = audioRef.current;
+    if (audio && Math.abs(audio.currentTime - video.currentTime) > 0.3) {
+      audio.currentTime = video.currentTime;
+    }
+  };
+
+  const handleSurfaceClick = (e: React.MouseEvent) => {
+    const now = Date.now();
+    const diff = now - lastTapRef.current;
+
+    if (diff < 320) {
+      // DOUBLE TAP: Like!
+      clearTimeout(doubleTapTimerRef.current);
+      const rect = e.currentTarget.getBoundingClientRect();
+      setHeartPos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setShowBigHeart(true);
+      setTimeout(() => setShowBigHeart(false), 850);
+
+      if (!reel.isLiked) {
+        onToggleLike(reel.id);
+      }
+      onShowToast("❤️ Liked!");
+    } else {
+      // SINGLE TAP: Play / Pause
+      doubleTapTimerRef.current = setTimeout(() => {
+        const video = videoRef.current;
+        const audio = audioRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+          video
+            .play()
+            .then(() => {
+              setIsPlaying(true);
+              if (audio && !isMuted) audio.play().catch(() => {});
+              setPlayPauseState("play");
+            })
+            .catch(() => {});
+        } else {
+          video.pause();
+          if (audio) audio.pause();
+          setIsPlaying(false);
+          setPlayPauseState("pause");
+        }
+        setTimeout(() => setPlayPauseState(null), 650);
+      }, 240);
+    }
+    lastTapRef.current = now;
+  };
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        minHeight: "100%",
+        scrollSnapAlign: "start",
+        scrollSnapStop: "always",
+        backgroundColor: "#000",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      {/* HTML5 Video Layer */}
+      <video
+        ref={videoRef}
+        src={reel.videoUrl}
+        poster={reel.thumbnailUrl}
+        playsInline
+        loop
+        preload="auto"
+        onTimeUpdate={handleTimeUpdate}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 1,
+          cursor: "pointer",
+        }}
+        onClick={handleSurfaceClick}
+      />
+
+      {/* Sync Audio Soundtrack */}
+      {reel.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={reel.audioUrl}
+          loop
+          preload="auto"
+          muted={isMuted}
+        />
+      )}
+
+      {/* Click / Tap Surface Overlay */}
+      <div
+        onClick={handleSurfaceClick}
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          background: "transparent",
+          cursor: "pointer",
+        }}
+      />
+
+      {/* Big Animated Popping Heart on Double-Tap */}
+      {showBigHeart && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${heartPos.x}px`,
+            top: `${heartPos.y}px`,
+            zIndex: 25,
+            pointerEvents: "none",
+            animation: "instagramHeartPop 0.85s ease-out forwards",
+            filter: "drop-shadow(0 0 20px rgba(244, 63, 94, 0.85))",
+          }}
+        >
+          <Heart size={84} fill="#f43f5e" color="#ffffff" strokeWidth={1.5} />
+        </div>
+      )}
+
+      {/* Play / Pause Feedback Badge */}
+      {playPauseState && (
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "68px",
+            height: "68px",
+            borderRadius: "50%",
+            background: "rgba(0, 0, 0, 0.65)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 20,
+            pointerEvents: "none",
+            animation: "pulse 0.6s ease-out",
+          }}
+        >
+          {playPauseState === "play" ? (
+            <Play size={32} fill="#FFFFFF" color="#FFFFFF" style={{ marginLeft: "4px" }} />
+          ) : (
+            <Pause size={30} fill="#FFFFFF" color="#FFFFFF" />
+          )}
+        </div>
+      )}
+
+      {/* Top Header Floating Controls (Category Pill & Sound Toggle) */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          padding: "44px 14px 14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      >
+        <span
+          style={{
+            background: "rgba(16, 20, 30, 0.75)",
+            border: "1px solid rgba(255, 152, 0, 0.4)",
+            color: "#FF9800",
+            fontSize: "0.68rem",
+            fontWeight: 800,
+            padding: "3px 10px",
+            borderRadius: "12px",
+            letterSpacing: "0.06em",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+          }}
+        >
+          {reel.category.toUpperCase()}
+        </span>
+
+        {/* Volume Unmute Button at Top Right */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleMute();
+            onShowToast(isMuted ? "🔊 Sound On" : "🔇 Sound Muted");
+          }}
+          style={{
+            background: isMuted ? "rgba(0, 0, 0, 0.6)" : "#FF9800",
+            color: isMuted ? "#FFFFFF" : "#08090C",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            width: "34px",
+            height: "34px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            pointerEvents: "auto",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.6)",
+            transition: "all 0.2s ease",
+          }}
+          title={isMuted ? "Unmute Sound" : "Mute Sound"}
+        >
+          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+      </div>
+
+      {/* Bottom Overlays: Creator & Description on Left, Action Rail on Right */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          padding: "16px 14px 112px",
+          background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.65) 60%, transparent 100%)",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: "10px",
+          pointerEvents: "none",
+        }}
+      >
+        {/* Left Column: Creator Profile, Follow, Title, Description, Soundtrack */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "auto" }}>
+          {/* Creator Pill */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <img
+              src={reel.creator.avatar}
+              alt={reel.creator.name}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "2px solid #FF9800",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.6)",
+              }}
+            />
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <span style={{ fontSize: "0.88rem", fontWeight: 800, color: "#FFFFFF" }}>
+                  {reel.creator.name}
+                </span>
+                {reel.creator.verified && <CheckCircle2 size={13} color="#FF9800" />}
+              </div>
+              <span style={{ fontSize: "0.68rem", color: "#A0AEC0", fontWeight: 600 }}>
+                {reel.creator.craft}
+              </span>
+            </div>
+
+            {/* Follow Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFollow(reel.creator.name);
+                onShowToast(isFollowing ? `Unfollowed ${reel.creator.name}` : `Following ${reel.creator.name}`);
+              }}
+              style={{
+                background: isFollowing ? "rgba(255, 255, 255, 0.12)" : "#FF9800",
+                color: isFollowing ? "#E2E8F0" : "#08090C",
+                border: isFollowing ? "1px solid rgba(255, 255, 255, 0.25)" : "none",
+                padding: "3px 10px",
+                borderRadius: "8px",
+                fontSize: "0.7rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "3px",
+                marginLeft: "4px",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {isFollowing ? (
+                <>
+                  <Check size={11} strokeWidth={3} />
+                  <span>Following</span>
+                </>
+              ) : (
+                <span>Follow</span>
+              )}
+            </button>
+          </div>
+
+          {/* Title */}
+          <h4
+            style={{
+              fontSize: "0.92rem",
+              fontWeight: 800,
+              color: "#FFFFFF",
+              margin: 0,
+              lineHeight: 1.3,
+              textShadow: "0 1px 4px rgba(0, 0, 0, 0.8)",
+            }}
+          >
+            {reel.title}
+          </h4>
+
+          {/* Caption / Description with more/less toggle */}
+          <div style={{ fontSize: "0.75rem", color: "#E2E8F0", lineHeight: 1.35, margin: 0 }}>
+            <span
+              style={{
+                display: isDescExpanded ? "inline" : "-webkit-box",
+                WebkitLineClamp: isDescExpanded ? "unset" : 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textShadow: "0 1px 3px rgba(0, 0, 0, 0.8)",
+              }}
+            >
+              {reel.description}
+            </span>
+            {reel.description && reel.description.length > 70 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDescExpanded(!isDescExpanded);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#FF9800",
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  padding: "0 0 0 6px",
+                }}
+              >
+                {isDescExpanded ? "less" : "...more"}
+              </button>
+            )}
+          </div>
+
+          {/* Audio Soundtrack Pill with Equalizer Wave */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(10, 12, 18, 0.7)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              padding: "3px 10px",
+              borderRadius: "14px",
+              width: "fit-content",
+              maxWidth: "85%",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+            }}
+          >
+            <Music size={12} color="#FF9800" />
+            <span
+              style={{
+                fontSize: "0.68rem",
+                color: "#F5F5F5",
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {reel.soundTrack}
+            </span>
+
+            {/* Equalizer Wave bars when audio is playing */}
+            {!isMuted && isPlaying && (
+              <div style={{ display: "flex", alignItems: "center", gap: "2px", marginLeft: "4px" }}>
+                <span style={{ width: "2px", height: "8px", background: "#FF9800", borderRadius: "1px", animation: "equalizerWave 0.8s ease-in-out infinite" }} />
+                <span style={{ width: "2px", height: "12px", background: "#FF9800", borderRadius: "1px", animation: "equalizerWave 0.8s ease-in-out 0.2s infinite" }} />
+                <span style={{ width: "2px", height: "6px", background: "#FF9800", borderRadius: "1px", animation: "equalizerWave 0.8s ease-in-out 0.4s infinite" }} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Instagram Action Rail */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "12px",
+            pointerEvents: "auto",
+          }}
+        >
+          {/* Like */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+            <button
+              type="button"
+              id={`reel-like-btn-${reel.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleLike(reel.id);
+                onShowToast(reel.isLiked ? "Unliked" : "❤️ Liked");
+              }}
+              style={{
+                background: "rgba(10, 12, 18, 0.65)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "50%",
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: reel.isLiked ? "#f43f5e" : "#FFFFFF",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+                transition: "transform 0.15s ease",
+              }}
+            >
+              <Heart size={20} fill={reel.isLiked ? "#f43f5e" : "none"} />
+            </button>
+            <span style={{ fontSize: "0.68rem", color: "#FFFFFF", fontWeight: 700 }}>
+              {reel.likes}
+            </span>
+          </div>
+
+          {/* Comments */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+            <button
+              type="button"
+              id={`reel-comment-btn-${reel.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenComments(reel);
+              }}
+              style={{
+                background: "rgba(10, 12, 18, 0.65)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "50%",
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#FFFFFF",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+                transition: "transform 0.15s ease",
+              }}
+            >
+              <MessageSquare size={20} />
+            </button>
+            <span style={{ fontSize: "0.68rem", color: "#FFFFFF", fontWeight: 700 }}>
+              {reel.commentsCount}
+            </span>
+          </div>
+
+          {/* Share */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+            <button
+              type="button"
+              id={`reel-share-btn-${reel.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare(reel);
+              }}
+              style={{
+                background: "rgba(10, 12, 18, 0.65)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "50%",
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#FFFFFF",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+                transition: "transform 0.15s ease",
+              }}
+            >
+              <Share2 size={19} />
+            </button>
+            <span style={{ fontSize: "0.68rem", color: "#FFFFFF", fontWeight: 700 }}>
+              {reel.shares}
+            </span>
+          </div>
+
+          {/* Bookmark / Save */}
+          <button
+            type="button"
+            id={`reel-bookmark-btn-${reel.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSave(reel.id);
+            }}
+            style={{
+              background: isSaved ? "rgba(255, 152, 0, 0.25)" : "rgba(10, 12, 18, 0.65)",
+              border: isSaved ? "1px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.15)",
+              borderRadius: "50%",
+              width: "42px",
+              height: "42px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: isSaved ? "#FF9800" : "#FFFFFF",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+              transition: "transform 0.15s ease",
+            }}
+            title={isSaved ? "Saved in Portfolio" : "Save Reel"}
+          >
+            <Bookmark size={19} fill={isSaved ? "#FF9800" : "none"} />
+          </button>
+
+          {/* Post Reel Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenPostModal();
+            }}
+            style={{
+              background: "#FF9800",
+              border: "none",
+              borderRadius: "50%",
+              width: "42px",
+              height: "42px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#08090C",
+              boxShadow: "0 4px 12px rgba(255, 152, 0, 0.5)",
+              transition: "transform 0.15s ease",
+            }}
+            title="Post Your Reel"
+          >
+            <Plus size={20} strokeWidth={3} />
+          </button>
+
+          {/* Rotating Vinyl Record */}
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, #2a2d36 30%, #0c0d12 70%)",
+              border: "2px solid rgba(255, 152, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              animation: isPlaying ? "vinylSpin 3.5s linear infinite" : "none",
+              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.7)",
+              marginTop: "4px",
+            }}
+          >
+            <Disc size={18} color="#FF9800" />
+          </div>
+        </div>
+      </div>
+
+      {/* Razor-Thin Bottom Playback Progress Bar */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "2.5px",
+          background: "rgba(255, 255, 255, 0.25)",
+          zIndex: 35,
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${progress}%`,
+            background: "#FF9800",
+            boxShadow: "0 0 6px #FF9800",
+            transition: "width 0.1s linear",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function MobileAppSimulatorPage() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<"stream" | "reels" | "auditions" | "messages" | "notifications" | "profile" | "settings" | "talent" | "pitches" | "pipeline">("stream");
   const [feedFilter, setFeedFilter] = useState<string>("all");
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>(HOME_FEED_POSTS);
@@ -109,16 +841,16 @@ export default function MobileAppSimulatorPage() {
     }
   };
 
-  // Complete Core Navigation Destinations
+  // Complete Core Navigation Destinations (1-by-1)
   const ALL_MOBILE_NAV_ITEMS = [
-    { id: "stream" as const, label: "Home", icon: Home },
-    { id: "reels" as const, label: "Reels", icon: Film },
-    { id: "auditions" as const, label: "Castings", icon: Clapperboard },
-    { id: "messages" as const, label: "Messages", icon: MessageSquare },
-    { id: "notifications" as const, label: "Notification", icon: Bell },
-    { id: "profile" as const, label: "Profile", icon: UserRound },
-    { id: "pipeline" as const, label: "Pipeline", icon: FolderHeart },
-    { id: "settings" as const, label: "Settings", icon: Settings },
+    { id: "stream" as const, label: "Home", subtitle: "Studio Feed", icon: Home },
+    { id: "reels" as const, label: "Reels", subtitle: "CineReels", icon: Film },
+    { id: "auditions" as const, label: "Opportunities", subtitle: "Auditions & Roles", icon: Clapperboard },
+    { id: "messages" as const, label: "Messages", subtitle: "Production DMs", icon: MessageSquare },
+    { id: "notifications" as const, label: "Notification", subtitle: "Callbacks & Match", icon: Bell },
+    { id: "profile" as const, label: "Profile", subtitle: "Showreels & Bio", icon: UserRound },
+    { id: "pipeline" as const, label: "My Applications", subtitle: "Applied Castings", icon: FolderHeart },
+    { id: "settings" as const, label: "Settings", subtitle: "App & Security", icon: Settings },
   ];
 
   // 2-by-2 Rotating Wheel Navigation System (4 Pairs = 8 Total Options)
@@ -133,8 +865,8 @@ export default function MobileAppSimulatorPage() {
     {
       id: 1,
       name: "Pair 2",
-      pairLabel: "Castings & Messages",
-      primary: { id: "auditions" as const, label: "Castings", icon: Clapperboard, subtitle: "Opportunities" },
+      pairLabel: "Opportunities & Messages",
+      primary: { id: "auditions" as const, label: "Opportunities", icon: Clapperboard, subtitle: "Production Roles" },
       companion: { id: "messages" as const, label: "Messages", icon: MessageSquare, subtitle: "Production DMs" },
     },
     {
@@ -147,13 +879,14 @@ export default function MobileAppSimulatorPage() {
     {
       id: 3,
       name: "Pair 4",
-      pairLabel: "Pipeline & Settings",
-      primary: { id: "pipeline" as const, label: "Pipeline", icon: FolderHeart, subtitle: "My Applications" },
+      pairLabel: "My Applications & Settings",
+      primary: { id: "pipeline" as const, label: "My Applications", icon: FolderHeart, subtitle: "Track Submissions" },
       companion: { id: "settings" as const, label: "Settings", icon: Settings, subtitle: "App & Security" },
     },
   ];
 
   // Reels State & Posting System
+  // Reels State & Posting System (Instagram Reels Engine)
   const [reelsList, setReelsList] = useState([
     {
       id: "reel-1",
@@ -165,7 +898,8 @@ export default function MobileAppSimulatorPage() {
       },
       title: "Shadow of Verity - Dramatic Monologue",
       description: "Screen test scene for Netflix crime thriller. 12-minute unbroken monologue take. Directed by Anurag Kashyap.",
-      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-actor-in-the-spotlight-giving-a-speech-41315-large.mp4",
+      videoUrl: "/reels/reel1.mp4",
+      audioUrl: "/reels/audio1.mp3",
       thumbnailUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
       category: "acting",
       soundTrack: "Original Sound - Kabir Mehra",
@@ -184,7 +918,8 @@ export default function MobileAppSimulatorPage() {
       },
       title: "2.39:1 Anamorphic Low-Light Lighting Showcase",
       description: "ARRI Alexa Mini LF + Cooke Anamorphic /i Full Frame Plus. Low-light Mumbai neon noir aesthetics.",
-      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-man-holding-a-camera-at-a-film-set-43224-large.mp4",
+      videoUrl: "/reels/reel2.mp4",
+      audioUrl: "/reels/audio2.mp3",
       thumbnailUrl: "https://images.unsplash.com/photo-1518134346374-184f9d21eb29?w=800&auto=format&fit=crop&q=80",
       category: "cinematography",
       soundTrack: "Dolby Atmos Ambient Score - Ananya Roy",
@@ -203,7 +938,8 @@ export default function MobileAppSimulatorPage() {
       },
       title: "High-Octane Combat & Wire Stunt Choreography",
       description: "Pre-viz fight choreography for upcoming action thriller. Unarmed hand-to-hand combat & tactical movement.",
-      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-set-of-plateaus-seen-from-the-sky-in-a-sunset-26070-large.mp4",
+      videoUrl: "/reels/reel3.mp4",
+      audioUrl: "/reels/audio3.mp3",
       thumbnailUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80",
       category: "stunts",
       soundTrack: "War Drums - High Tempo Combat Score",
@@ -222,7 +958,8 @@ export default function MobileAppSimulatorPage() {
       },
       title: "MAMI Award Winning Short - Director's Cut",
       description: "Scenes from 'Bridges of Ganga' selected at Cannes Short Film Corner and Sundance Indie Lab.",
-      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-actor-in-the-spotlight-giving-a-speech-41315-large.mp4",
+      videoUrl: "/reels/reel4.mp4",
+      audioUrl: "/reels/audio4.mp3",
       thumbnailUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&auto=format&fit=crop&q=80",
       category: "direction",
       soundTrack: "Indian Classical Cello - Sandeep Roy",
@@ -237,12 +974,96 @@ export default function MobileAppSimulatorPage() {
   const [reelsCategoryFilter, setReelsCategoryFilter] = useState<string>("all");
   const [playingReelId, setPlayingReelId] = useState<string | null>("reel-1");
 
+  // Instagram Reels Audio & Navigation State
+  const [isReelsMuted, setIsReelsMuted] = useState(false);
+  const [activeReelIndex, setActiveReelIndex] = useState(0);
+  const [activeReelComments, setActiveReelComments] = useState<any | null>(null);
+  const [newReelCommentText, setNewReelCommentText] = useState("");
+  const [savedReelIds, setSavedReelIds] = useState<string[]>([]);
+  const reelsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Community Comments for Reels
+  const [reelCommentsMap, setReelCommentsMap] = useState<Record<string, Array<{ id: string; user: string; avatar: string; text: string; time: string; verified?: boolean }>>>({
+    "reel-1": [
+      { id: "c1", user: "Rohan Varma", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80", text: "Incredible emotional range Kabir! That pause at 0:45 gave me literal goosebumps 🔥", time: "2h ago", verified: true },
+      { id: "c2", user: "Zoya Akhtar Office", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80", text: "Please DM your agency representation contact. Casting team is reviewing.", time: "4h ago", verified: true },
+      { id: "c3", user: "Pooja Hegde", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80", text: "Pure craft!! 🙌 Keep shining!", time: "5h ago" },
+    ],
+    "reel-2": [
+      { id: "c4", user: "Sudeep Chatterjee (ISC)", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80", text: "Exceptional shadow roll-off with those Cooke Anamorphics. Great flare control in the rain! 🎥", time: "1h ago", verified: true },
+      { id: "c5", user: "Dharma Productions", avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&auto=format&fit=crop&q=80", text: "Saved to our camera crew roster for Q3 shoot.", time: "3h ago", verified: true },
+    ],
+    "reel-3": [
+      { id: "c6", user: "Action Directors Guild", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80", text: "The wire transition at the vault jump was seamless. High level stunt rigging! 💥", time: "30m ago", verified: true },
+    ],
+    "reel-4": [
+      { id: "c7", user: "Karan Johar", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80", text: "Brilliant framing and atmospheric storytelling. Very promising vision!", time: "3h ago", verified: true },
+    ],
+  });
+
+  const handleShowToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 2200);
+  };
+
+  const handleToggleSaveReel = (id: string) => {
+    setSavedReelIds((prev) => {
+      const isSaved = prev.includes(id);
+      const next = isSaved ? prev.filter((item) => item !== id) : [...prev, id];
+      handleShowToast(isSaved ? "Removed from Saved Reels" : "Saved Reel to Portfolio 🔖");
+      return next;
+    });
+  };
+
+  const handleShareReel = (reel: any) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(`${window.location.origin}/mobile#reel-${reel.id}`);
+      handleShowToast("🔗 Reel link copied to clipboard!");
+    } else {
+      handleShowToast("🔗 Reel link copied!");
+    }
+  };
+
+  const handleAddReelComment = (reelId: string) => {
+    if (!newReelCommentText.trim()) return;
+    const newComment = {
+      id: "cm-" + Date.now(),
+      user: "Current Creator",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      text: newReelCommentText.trim(),
+      time: "Just now",
+      verified: true,
+    };
+    setReelCommentsMap((prev) => ({
+      ...prev,
+      [reelId]: [newComment, ...(prev[reelId] || [])],
+    }));
+    setReelsList((prev) =>
+      prev.map((r) => (r.id === reelId ? { ...r, commentsCount: r.commentsCount + 1 } : r))
+    );
+    setNewReelCommentText("");
+    handleShowToast("💬 Comment posted!");
+  };
+
+  // Synchronous zero-lag scroll snap detection
+  const handleReelsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const itemHeight = container.clientHeight;
+    if (itemHeight <= 0) return;
+    const newIndex = Math.round(container.scrollTop / itemHeight);
+    if (newIndex !== activeReelIndex && newIndex >= 0 && newIndex < reelsList.length) {
+      setActiveReelIndex(newIndex);
+    }
+  };
+
   // Post Reel Modal Form Fields
   const [newReelTitle, setNewReelTitle] = useState("");
   const [newReelCreatorName, setNewReelCreatorName] = useState("Kabir Mehra");
   const [newReelCraft, setNewReelCraft] = useState("Method Actor");
   const [newReelCategory, setNewReelCategory] = useState<"acting" | "cinematography" | "stunts" | "direction">("acting");
-  const [newReelVideoUrl, setNewReelVideoUrl] = useState("https://assets.mixkit.co/videos/preview/mixkit-actor-in-the-spotlight-giving-a-speech-41315-large.mp4");
+  const [newReelVideoUrl, setNewReelVideoUrl] = useState("/reels/reel1.mp4");
   const [newReelDesc, setNewReelDesc] = useState("");
   const [newReelSoundTrack, setNewReelSoundTrack] = useState("Original Sound - Kabir Mehra");
 
@@ -260,7 +1081,8 @@ export default function MobileAppSimulatorPage() {
       },
       title: newReelTitle,
       description: newReelDesc || "Exclusive reel submission on CineConnect showcase.",
-      videoUrl: newReelVideoUrl || "https://assets.mixkit.co/videos/preview/mixkit-actor-in-the-spotlight-giving-a-speech-41315-large.mp4",
+      videoUrl: newReelVideoUrl || "/reels/reel1.mp4",
+      audioUrl: "/reels/audio1.mp3",
       thumbnailUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
       category: newReelCategory,
       soundTrack: newReelSoundTrack || "Original Sound - " + newReelCreatorName,
@@ -275,7 +1097,9 @@ export default function MobileAppSimulatorPage() {
     setNewReelTitle("");
     setNewReelDesc("");
     setPlayingReelId(newReel.id);
+    setActiveReelIndex(0);
     setActiveTab("reels");
+    handleShowToast("✨ Reel Published Successfully!");
   };
 
   const handleToggleLikeReel = (id: string) => {
@@ -326,10 +1150,13 @@ export default function MobileAppSimulatorPage() {
   const [isWheelDragging, setIsWheelDragging] = useState(false);
 
   const navContainerRef = useRef<HTMLElement | null>(null);
+  const isPointerDownRef = useRef(false);
   const dragStartXRef = useRef(0);
+  const lastClientXRef = useRef(0);
   const startRotationRef = useRef(0);
   const dragStartTimeRef = useRef(0);
   const hasWheelDraggedRef = useRef(false);
+  const wheelScrollCooldownRef = useRef(0);
 
   // Synchronize rotation with activeTab using shortest path
   useEffect(() => {
@@ -341,79 +1168,66 @@ export default function MobileAppSimulatorPage() {
     });
   }, [activeTab]);
 
+  const currentNavIndex = Math.max(0, ALL_MOBILE_NAV_ITEMS.findIndex((item) => item.id === activeTab));
+
+  const handleNextItem = () => {
+    const nextIdx = (currentNavIndex + 1) % ALL_MOBILE_NAV_ITEMS.length;
+    handleSelectTab(ALL_MOBILE_NAV_ITEMS[nextIdx].id);
+  };
+
+  const handlePrevItem = () => {
+    const prevIdx = (currentNavIndex - 1 + ALL_MOBILE_NAV_ITEMS.length) % ALL_MOBILE_NAV_ITEMS.length;
+    handleSelectTab(ALL_MOBILE_NAV_ITEMS[prevIdx].id);
+  };
+
   const rotateWheelToItem = (itemIndex: number) => {
-    const targetAngle = -itemIndex * 45;
-    setWheelRotation((prev) => {
-      const diff = (((targetAngle - prev) % 360) + 540) % 360 - 180;
-      return prev + diff;
-    });
-    handleSelectTab(ALL_MOBILE_NAV_ITEMS[itemIndex].id);
+    const normalizedIndex = ((itemIndex % ALL_MOBILE_NAV_ITEMS.length) + ALL_MOBILE_NAV_ITEMS.length) % ALL_MOBILE_NAV_ITEMS.length;
+    const targetItem = ALL_MOBILE_NAV_ITEMS[normalizedIndex];
+    if (targetItem) {
+      handleSelectTab(targetItem.id);
+    }
   };
 
   const handleNavPointerDown = (e: React.PointerEvent<HTMLElement>) => {
-    setIsWheelDragging(true);
+    isPointerDownRef.current = true;
     dragStartXRef.current = e.clientX;
-    startRotationRef.current = wheelRotation;
-    dragStartTimeRef.current = Date.now();
+    lastClientXRef.current = e.clientX;
     hasWheelDraggedRef.current = false;
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
   };
 
   const handleNavPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    // Nav bar stays completely still when simply moving cursor - only moves during active drag
-    if (!isWheelDragging) return;
-
+    if (!isPointerDownRef.current) return;
     const deltaX = e.clientX - dragStartXRef.current;
-    if (Math.abs(deltaX) > 5) {
-      hasWheelDraggedRef.current = true;
+    if (Math.abs(deltaX) > 30) {
+      if (deltaX < 0) {
+        handleNextItem();
+      } else {
+        handlePrevItem();
+      }
+      dragStartXRef.current = e.clientX;
+      isPointerDownRef.current = false;
     }
-
-    // 0.35 degrees per px drag
-    const currentAngle = startRotationRef.current + deltaX * 0.35;
-    setWheelRotation(currentAngle);
   };
 
-  const handleNavPointerUp = (e?: React.PointerEvent<HTMLElement>) => {
-    if (!isWheelDragging) return;
-    setIsWheelDragging(false);
-    if (e) {
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {}
-    }
-
-    const elapsed = Math.max(1, Date.now() - dragStartTimeRef.current);
-    const deltaX = (dragStartXRef.current ? (e ? e.clientX : dragStartXRef.current) : 0) - dragStartXRef.current;
-    const velocity = deltaX / elapsed;
-
-    // Projected target angle with subtle momentum
-    const projectedAngle = wheelRotation + velocity * 15;
-
-    // Find closest item among the 8 options
-    let closestIndex = 0;
-    let minDiff = Infinity;
-    ALL_MOBILE_NAV_ITEMS.forEach((_, idx) => {
-      const itemAngle = idx * 45;
-      const normalizedDiff = Math.abs((((itemAngle + projectedAngle) % 360) + 540) % 360 - 180);
-      if (normalizedDiff < minDiff) {
-        minDiff = normalizedDiff;
-        closestIndex = idx;
-      }
-    });
-
-    // Snap to the closest item
-    rotateWheelToItem(closestIndex);
-
-    setTimeout(() => {
-      hasWheelDraggedRef.current = false;
-    }, 80);
+  const handleNavPointerUp = () => {
+    isPointerDownRef.current = false;
   };
 
   const handleNavMouseLeave = () => {
-    if (isWheelDragging) {
-      handleNavPointerUp();
+    isPointerDownRef.current = false;
+  };
+
+  const handleNavWheel = (e: React.WheelEvent<HTMLElement>) => {
+    const now = Date.now();
+    if (now - wheelScrollCooldownRef.current < 200) return;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (Math.abs(delta) > 10) {
+      wheelScrollCooldownRef.current = now;
+      if (delta > 0) {
+        handleNextItem();
+      } else {
+        handlePrevItem();
+      }
     }
   };
 
@@ -574,18 +1388,9 @@ export default function MobileAppSimulatorPage() {
     switch (activeTab) {
       case "stream":
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {/* Instagram-Style Stories Bar at the Top */}
-            <InstagramStoriesBar
-              onStoryReact={(storyId, reaction) => {
-                setToastMessage(`Story reaction sent! ${reaction}`);
-                setTimeout(() => setToastMessage(null), 2000);
-              }}
-              onSendMessage={(storyId, message) => {
-                setToastMessage(`Story message sent: "${message}" 📩`);
-                setTimeout(() => setToastMessage(null), 2000);
-              }}
-            />
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingTop: "4px" }}>
+            {/* Square-Shaped Stories Section */}
+            <CineStoriesSection onOpenCreateStory={() => setShowCreatePost(true)} />
 
             <div style={{ padding: "0 12px", display: "flex", flexDirection: "column", gap: "12px" }}>
               {/* Quick composer banner */}
@@ -688,11 +1493,23 @@ export default function MobileAppSimulatorPage() {
                   </p>
 
                   {post.mediaUrl && (
-                    <img
-                      src={post.mediaUrl}
-                      alt="Media"
-                      style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "10px" }}
-                    />
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "220px",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        background: "#08090C",
+                        position: "relative",
+                      }}
+                    >
+                      <img
+                        src={post.mediaUrl}
+                        alt={post.author.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    </div>
                   )}
 
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "6px" }}>
@@ -829,346 +1646,343 @@ export default function MobileAppSimulatorPage() {
           ? reelsList
           : reelsList.filter((r) => r.category === reelsCategoryFilter);
 
+        const currentReelCommentsList = activeReelComments ? (reelCommentsMap[activeReelComments.id] || []) : [];
+
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px", padding: "12px 10px" }}>
-            {/* Reels Spotlight Header & Post Reel CTA */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              minHeight: 0,
+              backgroundColor: "#000",
+              overflow: "hidden",
+            }}
+          >
+            {/* Top Floating Category Filter Pills (Instagram style) */}
             <div
               style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 28,
+                padding: "8px 12px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: "4px 2px",
-              }}
-            >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Film size={18} color="#FF9800" />
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF", margin: 0 }}>
-                    CineReels
-                  </h3>
-                </div>
-                <span style={{ fontSize: "0.7rem", color: "var(--accent-gold)", fontWeight: 600 }}>
-                  Talent Showreels & Audition Tapes
-                </span>
-              </div>
-
-              {/* + Post Your Reel Button */}
-              <button
-                type="button"
-                id="post-reel-btn"
-                onClick={() => setShowPostReelModal(true)}
-                style={{
-                  background: "#FF9800",
-                  color: "#08090C",
-                  border: "none",
-                  borderRadius: "20px",
-                  padding: "6px 14px",
-                  fontSize: "0.75rem",
-                  fontWeight: 800,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 10px rgba(255, 152, 0, 0.4)",
-                  transition: "transform 0.15s ease",
-                }}
-              >
-                <Plus size={14} strokeWidth={3} />
-                <span>Post Reel</span>
-              </button>
-            </div>
-
-            {/* Quick Craft Filter Chips */}
-            <div
-              style={{
-                display: "flex",
                 gap: "6px",
                 overflowX: "auto",
-                paddingBottom: "4px",
                 scrollbarWidth: "none",
+                background: "linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0,0,0,0) 100%)",
+                pointerEvents: "auto",
               }}
+              className="no-scrollbar"
             >
               {[
-                { id: "all", label: "All Reels" },
-                { id: "acting", label: "Acting" },
-                { id: "cinematography", label: "Cinematography" },
-                { id: "stunts", label: "Stunts & Action" },
-                { id: "direction", label: "Directing" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setReelsCategoryFilter(tab.id)}
-                  style={{
-                    background: reelsCategoryFilter === tab.id ? "#FF9800" : "rgba(255, 255, 255, 0.06)",
-                    color: reelsCategoryFilter === tab.id ? "#08090C" : "var(--text-secondary)",
-                    border: reelsCategoryFilter === tab.id ? "1px solid #FF9800" : "1px solid var(--border-subtle)",
-                    borderRadius: "16px",
-                    padding: "4px 10px",
-                    fontSize: "0.7rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
+                { id: "all", label: "🔥 All Reels" },
+                { id: "acting", label: "🎭 Acting" },
+                { id: "cinematography", label: "🎥 Cinematography" },
+                { id: "stunts", label: "💥 Stunts" },
+                { id: "direction", label: "🎬 Directing" },
+              ].map((tab) => {
+                const isSelected = reelsCategoryFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      setReelsCategoryFilter(tab.id);
+                      setActiveReelIndex(0);
+                      if (reelsContainerRef.current) {
+                        reelsContainerRef.current.scrollTop = 0;
+                      }
+                    }}
+                    style={{
+                      background: isSelected ? "#FF9800" : "rgba(16, 20, 28, 0.75)",
+                      color: isSelected ? "#08090C" : "#E2E8F0",
+                      border: isSelected ? "1.5px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.16)",
+                      borderRadius: "18px",
+                      padding: "4px 11px",
+                      fontSize: "0.7rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      backdropFilter: "blur(10px)",
+                      WebkitBackdropFilter: "blur(10px)",
+                      boxShadow: isSelected ? "0 2px 10px rgba(255, 152, 0, 0.45)" : "0 2px 6px rgba(0, 0, 0, 0.4)",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Reels Feed Cards */}
-            {filteredReels.map((reel) => (
+            {/* Full-Height Vertical Snap Scrollable Container */}
+            <div
+              ref={reelsContainerRef}
+              onScroll={handleReelsScroll}
+              className="no-scrollbar"
+              style={{
+                width: "100%",
+                height: "100%",
+                overflowY: "scroll",
+                scrollSnapType: "y mandatory",
+                WebkitOverflowScrolling: "touch",
+                position: "relative",
+              }}
+            >
+              {filteredReels.length === 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
+                    color: "#94A3B8",
+                    gap: "10px",
+                    padding: "20px",
+                    textAlign: "center",
+                  }}
+                >
+                  <Film size={42} color="#FF9800" />
+                  <p style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff" }}>
+                    No reels in this category yet
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowPostReelModal(true)}
+                    style={{
+                      background: "#FF9800",
+                      color: "#08090C",
+                      border: "none",
+                      borderRadius: "12px",
+                      padding: "8px 16px",
+                      fontWeight: 800,
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Post the First Reel
+                  </button>
+                </div>
+              ) : (
+                filteredReels.map((reel, index) => (
+                  <CineInstagramReelCard
+                    key={reel.id}
+                    reel={reel}
+                    isActive={index === activeReelIndex}
+                    isMuted={isReelsMuted}
+                    onToggleMute={() => setIsReelsMuted(!isReelsMuted)}
+                    onToggleLike={handleToggleLikeReel}
+                    onOpenComments={(r) => setActiveReelComments(r)}
+                    onShare={handleShareReel}
+                    onToggleSave={handleToggleSaveReel}
+                    isSaved={savedReelIds.includes(reel.id)}
+                    isFollowing={followedAuthors.includes(reel.creator.name)}
+                    onToggleFollow={handleToggleFollow}
+                    onShowToast={handleShowToast}
+                    onOpenPostModal={() => setShowPostReelModal(true)}
+                  />
+                ))
+              )}
+            </div>
+
+            {/* Slide-Up Instagram Comments Sheet */}
+            {activeReelComments && (
               <div
-                key={reel.id}
                 style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "460px",
-                  borderRadius: "16px",
-                  overflow: "hidden",
-                  backgroundColor: "#05070a",
-                  border: "1px solid #1E222D",
-                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.8)",
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 50,
+                  backgroundColor: "rgba(0, 0, 0, 0.65)",
+                  backdropFilter: "blur(6px)",
+                  WebkitBackdropFilter: "blur(6px)",
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-end",
                 }}
+                onClick={() => setActiveReelComments(null)}
               >
-                {/* HTML5 Video or Cinematic Thumbnail */}
-                <video
-                  src={reel.videoUrl}
-                  poster={reel.thumbnailUrl}
-                  playsInline
-                  loop
-                  controls
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    zIndex: 1,
-                  }}
-                />
-
-                {/* Top Overlay: Category & Audio */}
                 <div
                   style={{
-                    position: "relative",
-                    zIndex: 2,
-                    padding: "10px",
+                    backgroundColor: "#0F131C",
+                    borderTop: "1px solid rgba(255, 152, 0, 0.35)",
+                    borderRadius: "22px 22px 0 0",
+                    maxHeight: "72%",
+                    height: "72%",
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)",
-                    pointerEvents: "none",
+                    flexDirection: "column",
+                    boxShadow: "0 -10px 40px rgba(0, 0, 0, 0.9)",
+                    overflow: "hidden",
+                    paddingBottom: "10px",
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <span
-                    style={{
-                      background: "rgba(8, 9, 12, 0.8)",
-                      border: "1px solid rgba(255, 152, 0, 0.35)",
-                      color: "#FF9800",
-                      fontSize: "0.65rem",
-                      fontWeight: 800,
-                      padding: "2px 8px",
-                      borderRadius: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {reel.category}
-                  </span>
-
+                  {/* Top Sheet Drag Indicator & Header */}
                   <div
                     style={{
+                      padding: "10px 16px 8px",
                       display: "flex",
+                      flexDirection: "column",
                       alignItems: "center",
-                      gap: "4px",
-                      background: "rgba(0, 0, 0, 0.65)",
-                      padding: "2px 8px",
-                      borderRadius: "10px",
-                      fontSize: "0.62rem",
-                      color: "#E2E8F0",
+                      borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                      position: "relative",
                     }}
                   >
-                    <Music size={10} color="#FF9800" />
-                    <span style={{ maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {reel.soundTrack}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom Overlay: Creator, Follow & Info + Vertical Action Stack */}
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    padding: "12px",
-                    background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)",
-                    display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "space-between",
-                    gap: "8px",
-                  }}
-                >
-                  {/* Creator Info & Description */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <img
-                        src={reel.creator.avatar}
-                        alt={reel.creator.name}
-                        style={{ width: "34px", height: "34px", borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF9800" }}
-                      />
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                            {reel.creator.name}
-                          </span>
-                          {reel.creator.verified && <CheckCircle2 size={12} color="#FF9800" />}
-                        </div>
-                        <span style={{ fontSize: "0.68rem", color: "#A0AEC0" }}>
-                          {reel.creator.craft}
+                    <div
+                      style={{
+                        width: "38px",
+                        height: "4px",
+                        borderRadius: "2px",
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        marginBottom: "10px",
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <MessageSquare size={16} color="#FF9800" />
+                        <span style={{ fontSize: "0.88rem", fontWeight: 800, color: "#FFFFFF" }}>
+                          Comments ({activeReelComments.commentsCount})
                         </span>
                       </div>
-
-                      {/* Instagram-style Follow Button */}
                       <button
                         type="button"
-                        onClick={() => handleToggleFollow(reel.creator.name)}
+                        onClick={() => setActiveReelComments(null)}
                         style={{
-                          background: followedAuthors.includes(reel.creator.name)
-                            ? "rgba(255, 255, 255, 0.12)"
-                            : "#FF9800",
-                          color: followedAuthors.includes(reel.creator.name) ? "#E2E8F0" : "#08090C",
-                          border: followedAuthors.includes(reel.creator.name)
-                            ? "1px solid rgba(255, 255, 255, 0.25)"
-                            : "none",
-                          padding: "3px 9px",
-                          borderRadius: "6px",
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          cursor: "pointer",
+                          background: "rgba(255, 255, 255, 0.08)",
+                          border: "none",
+                          color: "#CBD5E1",
+                          width: "28px",
+                          height: "28px",
+                          borderRadius: "50%",
                           display: "flex",
                           alignItems: "center",
-                          gap: "3px",
-                          marginLeft: "6px",
+                          justifyContent: "center",
+                          cursor: "pointer",
                         }}
                       >
-                        {followedAuthors.includes(reel.creator.name) ? (
-                          <>
-                            <Check size={11} strokeWidth={2.8} />
-                            <span>Following</span>
-                          </>
-                        ) : (
-                          <span>Follow</span>
-                        )}
+                        <X size={14} />
                       </button>
                     </div>
-
-                    <h4 style={{ fontSize: "0.88rem", fontWeight: 700, color: "#FFFFFF", margin: 0, lineHeight: 1.3 }}>
-                      {reel.title}
-                    </h4>
-
-                    <p style={{ fontSize: "0.72rem", color: "#CBD5E1", margin: 0, lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                      {reel.description}
-                    </p>
                   </div>
 
-                  {/* Vertical Action Stack on Right */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                    {/* Like Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleLikeReel(reel.id)}
-                      style={{
-                        background: "rgba(0, 0, 0, 0.5)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        borderRadius: "50%",
-                        width: "36px",
-                        height: "36px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        color: reel.isLiked ? "#f43f5e" : "#FFFFFF",
-                      }}
-                    >
-                      <Heart size={16} fill={reel.isLiked ? "#f43f5e" : "none"} />
-                    </button>
-                    <span style={{ fontSize: "0.62rem", color: "#E2E8F0", fontWeight: 700, marginTop: "-6px" }}>
-                      {reel.likes}
-                    </span>
+                  {/* Comments List */}
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: "auto",
+                      padding: "14px 16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "14px",
+                    }}
+                  >
+                    {currentReelCommentsList.length === 0 ? (
+                      <div style={{ textAlign: "center", color: "#64748B", padding: "30px 10px", fontSize: "0.8rem" }}>
+                        No comments yet. Be the first to applaud this reel!
+                      </div>
+                    ) : (
+                      currentReelCommentsList.map((comm) => (
+                        <div key={comm.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                          <img
+                            src={comm.avatar}
+                            alt={comm.user}
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              border: "1px solid rgba(255, 152, 0, 0.3)",
+                            }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" }}>
+                              <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "#FFFFFF" }}>
+                                {comm.user}
+                              </span>
+                              {comm.verified && <CheckCircle2 size={11} color="#FF9800" />}
+                              <span style={{ fontSize: "0.65rem", color: "#64748B" }}>
+                                {comm.time}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: "0.78rem", color: "#E2E8F0", lineHeight: 1.35, margin: 0 }}>
+                              {comm.text}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
 
-                    {/* Comment Button */}
-                    <button
-                      type="button"
-                      onClick={() => alert(`Comments for "${reel.title}" will open here.`)}
+                  {/* Add Comment Input Bar */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAddReelComment(activeReelComments.id);
+                    }}
+                    style={{
+                      padding: "10px 14px",
+                      borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      backgroundColor: "rgba(10, 12, 18, 0.95)",
+                    }}
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+                      alt="Current User"
+                      style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }}
+                    />
+                    <input
+                      type="text"
+                      placeholder={`Add a comment for ${activeReelComments.creator.name}...`}
+                      value={newReelCommentText}
+                      onChange={(e) => setNewReelCommentText(e.target.value)}
                       style={{
-                        background: "rgba(0, 0, 0, 0.5)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        borderRadius: "50%",
-                        width: "36px",
-                        height: "36px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
+                        flex: 1,
+                        background: "rgba(255, 255, 255, 0.06)",
+                        border: "1px solid rgba(255, 255, 255, 0.14)",
+                        borderRadius: "20px",
+                        padding: "8px 14px",
                         color: "#FFFFFF",
+                        fontSize: "0.78rem",
+                        outline: "none",
                       }}
-                    >
-                      <MessageSquare size={16} />
-                    </button>
-                    <span style={{ fontSize: "0.62rem", color: "#E2E8F0", fontWeight: 700, marginTop: "-6px" }}>
-                      {reel.commentsCount}
-                    </span>
-
-                    {/* Share Button */}
+                    />
                     <button
-                      type="button"
-                      onClick={() => alert(`Reel link copied! 🎬 Share this showcase directly.`)}
+                      type="submit"
+                      disabled={!newReelCommentText.trim()}
                       style={{
-                        background: "rgba(0, 0, 0, 0.5)",
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        borderRadius: "50%",
-                        width: "36px",
-                        height: "36px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        color: "#FFFFFF",
-                      }}
-                    >
-                      <Share2 size={15} />
-                    </button>
-
-                    {/* Quick Post Reel Button in Action Stack */}
-                    <button
-                      type="button"
-                      title="Post Your Reel"
-                      onClick={() => setShowPostReelModal(true)}
-                      style={{
-                        background: "#FF9800",
+                        background: newReelCommentText.trim() ? "#FF9800" : "rgba(255, 255, 255, 0.1)",
+                        color: newReelCommentText.trim() ? "#08090C" : "#64748B",
                         border: "none",
                         borderRadius: "50%",
-                        width: "36px",
-                        height: "36px",
+                        width: "32px",
+                        height: "32px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        cursor: "pointer",
-                        color: "#08090C",
-                        boxShadow: "0 2px 8px rgba(255, 152, 0, 0.5)",
+                        cursor: newReelCommentText.trim() ? "pointer" : "default",
+                        transition: "all 0.15s ease",
                       }}
                     >
-                      <Plus size={18} strokeWidth={3} />
+                      <Send size={14} />
                     </button>
-                  </div>
+                  </form>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         );
 
@@ -2170,7 +2984,7 @@ export default function MobileAppSimulatorPage() {
                 {pipelineItems.length} Submissions in Progress
               </span>
               <span className="badge badge-gold" style={{ fontSize: "0.68rem" }}>
-                Active Pipeline
+                My Applications
               </span>
             </div>
 
@@ -2544,7 +3358,7 @@ export default function MobileAppSimulatorPage() {
 
           {/* Top Right Mobile Header Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            {/* Notifications Button (First) */}
+            {/* Notifications Button */}
             <button
               id="mobile-notifications-top-btn"
               title="Notifications"
@@ -2634,25 +3448,25 @@ export default function MobileAppSimulatorPage() {
           </div>
         </div>
 
-        {/* Screen Body Viewport (Zero feed leakage when in Messages) */}
+        {/* Screen Body Viewport (Zero feed leakage when in Messages, full-height for Reels) */}
         <div
           ref={mobileBodyScrollRef}
           style={{
             flex: 1,
             minHeight: 0,
             height: "100%",
-            overflowY: activeTab === "messages" ? "hidden" : "auto",
+            overflowY: activeTab === "messages" || activeTab === "reels" ? "hidden" : "auto",
             position: "relative",
             display: "flex",
             flexDirection: "column",
             background: "#080a0f",
-            paddingBottom: "100px",
+            paddingBottom: activeTab === "reels" ? "0" : "100px",
           }}
         >
           {renderMobileScreen()}
         </div>
 
-        {/* Semi-Circle Rotating Wheel Navigation Bar */}
+        {/* Prominent Semi-Circle Rotating Wheel Navigation Bar with All 8 Icons Fully Visible */}
         <nav
           ref={navContainerRef}
           onPointerDown={handleNavPointerDown}
@@ -2660,46 +3474,141 @@ export default function MobileAppSimulatorPage() {
           onPointerUp={handleNavPointerUp}
           onPointerCancel={handleNavPointerUp}
           onMouseLeave={handleNavMouseLeave}
+          onWheel={handleNavWheel}
+          suppressHydrationWarning
           aria-label="CineConnect Semi-Circle Rotating Wheel Navigation"
           style={{
             position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
-            height: "96px",
-            background: "linear-gradient(180deg, rgba(8, 10, 16, 0.45) 0%, rgba(8, 10, 16, 0.72) 100%)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            borderTop: "none",
-            borderTopLeftRadius: "38px",
-            borderTopRightRadius: "38px",
+            height: "124px",
+            background: "linear-gradient(180deg, rgba(16, 20, 32, 0.96) 0%, rgba(8, 10, 16, 0.99) 100%)",
+            backdropFilter: "blur(28px)",
+            WebkitBackdropFilter: "blur(28px)",
+            borderRadius: "50% 50% 0 0 / 44px 44px 0 0",
+            borderTop: "2.5px solid #FF9800",
             overflow: "hidden",
             zIndex: 40,
-            boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.65)",
+            boxShadow: "0 -8px 28px rgba(255, 152, 0, 0.45), 0 -14px 40px rgba(0, 0, 0, 0.95)",
             userSelect: "none",
-            touchAction: "none",
-            cursor: isWheelDragging ? "grabbing" : "grab",
+            touchAction: "pan-y",
           }}
         >
-          {/* Semi-Circle Rotating Options Track */}
+          {/* Top Amber Specular Glare Arc */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "15%",
+              right: "15%",
+              height: "2.5px",
+              background: "linear-gradient(90deg, transparent 0%, #FFE082 30%, #FF9800 50%, #FFE082 70%, transparent 100%)",
+              boxShadow: "0 0 14px #FF9800, 0 0 24px rgba(255, 152, 0, 0.7)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* Semi-Circle Arc SVG Rim Highlight Contour */}
+          <svg
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "54px",
+              pointerEvents: "none",
+              overflow: "visible",
+            }}
+            viewBox="0 0 374 54"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient id="wheelRimContour" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="transparent" />
+                <stop offset="20%" stopColor="rgba(255, 152, 0, 0.35)" />
+                <stop offset="50%" stopColor="rgba(255, 152, 0, 1)" />
+                <stop offset="80%" stopColor="rgba(255, 152, 0, 0.35)" />
+                <stop offset="100%" stopColor="transparent" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0 44 Q 187 2 374 44"
+              fill="none"
+              stroke="url(#wheelRimContour)"
+              strokeWidth="2.5"
+            />
+          </svg>
+
+          {/* Rotating Wheel Dial Disc with Concentric Tracks & 8 Graduation Ticks */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "-150px",
+              left: "50%",
+              width: "350px",
+              height: "350px",
+              marginLeft: "-175px",
+              borderRadius: "50%",
+              border: "2px dashed rgba(255, 152, 0, 0.32)",
+              boxShadow: "inset 0 0 30px rgba(255, 152, 0, 0.12)",
+              pointerEvents: "none",
+              transform: `rotate(${wheelRotation}deg)`,
+              transition: isPointerDownRef.current ? "none" : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+              zIndex: 10,
+            }}
+          >
+            {/* Inner Concentric Bezel Ring */}
+            <div
+              style={{
+                position: "absolute",
+                inset: "26px",
+                borderRadius: "50%",
+                border: "1px solid rgba(255, 152, 0, 0.15)",
+              }}
+            />
+
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
+              <div
+                key={deg}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  width: "2px",
+                  height: "12px",
+                  marginLeft: "-1px",
+                  background: i === currentNavIndex ? "#FF9800" : "rgba(255, 255, 255, 0.28)",
+                  boxShadow: i === currentNavIndex ? "0 0 10px #FF9800" : "none",
+                  transformOrigin: "50% 175px",
+                  transform: `rotate(${deg}deg)`,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* All 8 Destinations Arrayed Along Semi-Circle Trigonometric Arc (100% Fully Visible) */}
           <div
             style={{
               position: "relative",
               width: "100%",
-              height: "76px",
+              height: "82px",
+              zIndex: 25,
             }}
           >
             {ALL_MOBILE_NAV_ITEMS.map((item, idx) => {
-              const itemBaseAngle = idx * 45;
-              // Normalized angle between -180 and +180 relative to top apex (0deg)
-              const currentAngle = (((itemBaseAngle + wheelRotation) % 360) + 540) % 360 - 180;
-              const absAngle = Math.abs(currentAngle);
-
-              // Hide items that rotate into the lower half below the semi-circle horizon
-              if (absAngle > 86) return null;
-
-              const isApex = absAngle < 15;
+              const isActive = activeTab === item.id;
               const IconComp = item.icon;
+
+              // 8 exact angles spanning the upper semi-circle from -65° to +65°
+              const ARC_ANGLES = [-65, -46.5, -28, -9.5, 9.5, 28, 46.5, 65];
+              const angleDeg = ARC_ANGLES[idx];
+              const rad = (angleDeg * Math.PI) / 180;
+
+              // Semi-circular trigonometry with 142px horizontal radius
+              const xOffset = Math.sin(rad) * 142;
+              // Parabolic vertical drop: apex is highest at y = 16px, edges at y = 45px
+              const yOffset = 16 + (1 - Math.cos(rad)) * 46;
 
               const badgeCount =
                 item.id === "messages"
@@ -2708,36 +3617,23 @@ export default function MobileAppSimulatorPage() {
                   ? unreadMobileNotifCount
                   : 0;
 
-              // Semi-circle trigonometric positioning along the rising arc
-              // Center x is 50%, offset horizontally by sin(angle)
-              // Center y is 16px at apex, dropping to ~66px at +/-75deg
-              const rad = (currentAngle * Math.PI) / 180;
-              const xOffset = Math.sin(rad) * 152; // max ~152px left/right
-              const yOffset = 16 + (1 - Math.cos(rad)) * 52; // 16px at 0deg, ~66px at 75deg
-
-              // Scale and opacity based on proximity to center apex
-              const scale = isApex ? 1.12 : Math.max(0.78, 1 - (absAngle / 90) * 0.28);
-              const opacity = absAngle > 68 ? Math.max(0, 1 - (absAngle - 68) / 18) : 1;
-
               return (
                 <button
                   key={item.id}
                   type="button"
                   id={`semi-wheel-item-${item.id}`}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (hasWheelDraggedRef.current) return;
-                    rotateWheelToItem(idx);
+                    handleSelectTab(item.id);
                   }}
                   title={item.label}
                   style={{
                     position: "absolute",
                     left: `calc(50% + ${xOffset}px)`,
                     top: `${yOffset}px`,
-                    transform: `translate(-50%, -50%) scale(${scale})`,
-                    transition: isWheelDragging
-                      ? "none"
-                      : "all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+                    transform: `translate(-50%, -50%) ${isActive ? "scale(1.2) translateY(-4px)" : "scale(0.96)"}`,
+                    transition: "all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
                     background: "none",
                     border: "none",
                     padding: 0,
@@ -2747,52 +3643,53 @@ export default function MobileAppSimulatorPage() {
                     justifyContent: "center",
                     cursor: "pointer",
                     outline: "none",
-                    opacity,
-                    zIndex: isApex ? 35 : Math.round(30 - absAngle / 4),
-                    pointerEvents: opacity > 0.3 ? "auto" : "none",
+                    zIndex: isActive ? 35 : 20,
                   }}
                 >
-                  {/* Icon Circle Container */}
+                  {/* Glowing Aura Ring for Active 1-by-1 Item */}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        background: "rgba(255, 152, 0, 0.45)",
+                        filter: "blur(8px)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
+
+                  {/* Icon Container */}
                   <div
                     style={{
                       position: "relative",
-                      width: isApex ? "44px" : "36px",
-                      height: isApex ? "44px" : "36px",
+                      width: isActive ? "38px" : "28px",
+                      height: isActive ? "38px" : "28px",
                       borderRadius: "50%",
-                      background: isApex
+                      background: isActive
                         ? "linear-gradient(135deg, #FFB300 0%, #FF9800 100%)"
-                        : "rgba(18, 22, 32, 0.72)",
-                      border: isApex
-                        ? "2px solid #FFFFFF"
+                        : "rgba(20, 24, 36, 0.88)",
+                      border: isActive
+                        ? "2.5px solid #FFFFFF"
                         : "1px solid rgba(255, 255, 255, 0.16)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxShadow: isApex
-                        ? "0 4px 18px rgba(255, 152, 0, 0.75), 0 0 10px rgba(255, 152, 0, 0.4)"
-                        : "0 2px 8px rgba(0, 0, 0, 0.4)",
+                      boxShadow: isActive
+                        ? "0 4px 18px rgba(255, 152, 0, 0.8), 0 0 12px rgba(255, 152, 0, 0.5)"
+                        : "0 2px 6px rgba(0, 0, 0, 0.5)",
                       transition: "all 0.25s ease",
                     }}
                   >
-                    {/* Glowing Aura Ring for Apex Item */}
-                    {isApex && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          width: "58px",
-                          height: "58px",
-                          borderRadius: "50%",
-                          background: "rgba(255, 152, 0, 0.25)",
-                          filter: "blur(6px)",
-                          pointerEvents: "none",
-                        }}
-                      />
-                    )}
-
                     <IconComp
-                      size={isApex ? 21 : 17}
-                      color={isApex ? "#08090C" : "#94A3B8"}
-                      strokeWidth={isApex ? 2.5 : 1.9}
+                      size={isActive ? 20 : 14}
+                      color={isActive ? "#08090C" : "#CBD5E1"}
+                      strokeWidth={isActive ? 2.6 : 2}
                     />
 
                     {/* Unread Counter Badge */}
@@ -2800,15 +3697,15 @@ export default function MobileAppSimulatorPage() {
                       <span
                         style={{
                           position: "absolute",
-                          top: "-2px",
-                          right: "-2px",
-                          minWidth: "15px",
-                          height: "15px",
-                          padding: "0 3px",
-                          borderRadius: "8px",
+                          top: "-3px",
+                          right: "-3px",
+                          minWidth: "14px",
+                          height: "14px",
+                          padding: "0 2.5px",
+                          borderRadius: "7px",
                           background: item.id === "messages" ? "#10b981" : "#ef4444",
                           color: "#fff",
-                          fontSize: "8.5px",
+                          fontSize: "7.5px",
                           fontWeight: 800,
                           display: "flex",
                           alignItems: "center",
@@ -2825,20 +3722,20 @@ export default function MobileAppSimulatorPage() {
                   <div
                     style={{
                       marginTop: "2px",
-                      background: isApex ? "#101219" : "rgba(8, 10, 16, 0.4)",
-                      border: isApex ? "1px solid #FF9800" : "1px solid transparent",
-                      padding: isApex ? "1px 7px" : "1px 4px",
-                      borderRadius: "8px",
-                      boxShadow: isApex ? "0 2px 6px rgba(255, 152, 0, 0.35)" : "none",
+                      background: isActive ? "#101219" : "transparent",
+                      border: isActive ? "1px solid #FF9800" : "1px solid transparent",
+                      padding: isActive ? "1px 5px" : "1px 2px",
+                      borderRadius: "6px",
+                      boxShadow: isActive ? "0 2px 6px rgba(255, 152, 0, 0.4)" : "none",
                       transition: "all 0.2s ease",
                     }}
                   >
                     <span
                       style={{
-                        fontSize: isApex ? "9.5px" : "8px",
-                        fontWeight: isApex ? 800 : 600,
-                        color: isApex ? "#F5F5F5" : "#858995",
-                        letterSpacing: "0.02em",
+                        fontSize: item.label.length > 8 ? "6.8px" : "7.5px",
+                        fontWeight: isActive ? 800 : 600,
+                        color: isActive ? "#FFFFFF" : "#858995",
+                        letterSpacing: item.label.length > 8 ? "-0.02em" : "0.01em",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -2850,46 +3747,129 @@ export default function MobileAppSimulatorPage() {
             })}
           </div>
 
-          {/* Bottom 8-Position Dial Indicator Beads */}
+          {/* Bottom Controls: Prev Stepper (←) + Active Breadcrumb + 8 Beads + Next Stepper (→) */}
           <div
             style={{
               position: "absolute",
               bottom: "4px",
-              left: 0,
-              right: 0,
+              left: "10px",
+              right: "10px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
+              justifyContent: "space-between",
               zIndex: 38,
             }}
           >
-            {ALL_MOBILE_NAV_ITEMS.map((item, idx) => {
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  title={`Rotate to ${item.label}`}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    rotateWheelToItem(idx);
-                  }}
-                  style={{
-                    height: "3.5px",
-                    width: isActive ? "18px" : "5px",
-                    borderRadius: "3px",
-                    background: isActive ? "#FF9800" : "rgba(255, 255, 255, 0.22)",
-                    boxShadow: isActive ? "0 0 8px #FF9800" : "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    transition: "all 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
-                  }}
-                />
-              );
-            })}
+            {/* Prev 1-by-1 Stepper Button */}
+            <button
+              type="button"
+              id="mobile-nav-prev-btn"
+              title="Previous destination"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevItem();
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "3px",
+                background: "rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+                borderRadius: "12px",
+                padding: "2.5px 8px",
+                color: "#CBD5E1",
+                cursor: "pointer",
+              }}
+            >
+              <ChevronLeft size={13} color="#CBD5E1" strokeWidth={2.5} />
+              <span style={{ fontSize: "8px", fontWeight: 700 }}>Prev</span>
+            </button>
+
+            {/* Center: Active Tab Pill & 8-Dot Dial Stream */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              {/* Active Tab Subtitle Pill */}
+              <div
+                style={{
+                  background: "rgba(255, 152, 0, 0.18)",
+                  border: "1px solid rgba(255, 152, 0, 0.5)",
+                  borderRadius: "8px",
+                  padding: "1.5px 7px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3px",
+                }}
+              >
+                <span style={{ fontSize: "8px", fontWeight: 800, color: "#FF9800" }}>
+                  {ALL_MOBILE_NAV_ITEMS[currentNavIndex]?.label}
+                </span>
+                <span style={{ fontSize: "7px", fontWeight: 600, color: "#CBD5E1" }}>
+                  • {ALL_MOBILE_NAV_ITEMS[currentNavIndex]?.subtitle}
+                </span>
+              </div>
+
+              {/* 8 Indicator Beads */}
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                {ALL_MOBILE_NAV_ITEMS.map((item, idx) => {
+                  const isSelected = currentNavIndex === idx;
+                  return (
+                    <button
+                      key={`indicator-${item.id}`}
+                      type="button"
+                      title={item.label}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectTab(item.id);
+                      }}
+                      style={{
+                        height: "3.5px",
+                        width: isSelected ? "15px" : "4px",
+                        borderRadius: "2px",
+                        background: isSelected ? "#FF9800" : "rgba(255, 255, 255, 0.25)",
+                        boxShadow: isSelected ? "0 0 6px #FF9800" : "none",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        transition: "all 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Next 1-by-1 Stepper Button */}
+            <button
+              type="button"
+              id="mobile-nav-next-btn"
+              title="Next destination"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextItem();
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "3px",
+                background: "rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+                borderRadius: "12px",
+                padding: "2.5px 8px",
+                color: "#CBD5E1",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ fontSize: "8px", fontWeight: 700 }}>Next</span>
+              <ChevronRight size={13} color="#CBD5E1" strokeWidth={2.5} />
+            </button>
           </div>
         </nav>
 
@@ -3139,15 +4119,19 @@ export default function MobileAppSimulatorPage() {
                   {[
                     {
                       label: "🎭 Acting Reel",
-                      url: "https://assets.mixkit.co/videos/preview/mixkit-actor-in-the-spotlight-giving-a-speech-41315-large.mp4",
+                      url: "/reels/reel1.mp4",
                     },
                     {
                       label: "🎥 Cinematography",
-                      url: "https://assets.mixkit.co/videos/preview/mixkit-man-holding-a-camera-at-a-film-set-43224-large.mp4",
+                      url: "/reels/reel2.mp4",
                     },
                     {
                       label: "💥 Combat Stunts",
-                      url: "https://assets.mixkit.co/videos/preview/mixkit-set-of-plateaus-seen-from-the-sky-in-a-sunset-26070-large.mp4",
+                      url: "/reels/reel3.mp4",
+                    },
+                    {
+                      label: "🎬 Directing Cut",
+                      url: "/reels/reel4.mp4",
                     },
                   ].map((preset, idx) => (
                     <button

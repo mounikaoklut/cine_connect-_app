@@ -212,4 +212,220 @@ export class ApiClient {
       body: JSON.stringify({ filename, content_type, purpose }),
     });
   }
+
+  // Notifications API
+  static async getNotifications(filter: "all" | "unread" = "all", page: number = 1, perPage: number = 20) {
+    return this.request<NotificationListResponse>(`/notifications?filter_by=${filter}&page=${page}&per_page=${perPage}`);
+  }
+
+  static async markNotificationRead(id: string) {
+    return this.request<{ id: string; is_read: boolean; unread_count: number }>(`/notifications/${id}/read`, {
+      method: "PATCH",
+    });
+  }
+
+  static async markAllNotificationsRead() {
+    return this.request<{ success: boolean; marked_count: number; unread_count: number }>("/notifications/mark-all-read", {
+      method: "POST",
+    });
+  }
+
+  static async registerDeviceToken(fcmToken: string, deviceType: "android" | "ios" | "web" = "web") {
+    return this.request<{ success: boolean; device_type: string; is_active: boolean }>("/notifications/device-token", {
+      method: "POST",
+      body: JSON.stringify({ fcm_token: fcmToken, device_type: deviceType }),
+    });
+  }
+
+  static async getNotificationPreferences() {
+    return this.request<NotificationPreferences>("/notifications/preferences");
+  }
+
+  static async updateNotificationPreferences(prefs: NotificationPreferences) {
+    return this.request<NotificationPreferences>("/notifications/preferences", {
+      method: "PUT",
+      body: JSON.stringify(prefs),
+    });
+  }
+
+  static async triggerStatusUpdate(data: {
+    target_user_id: string;
+    project_title: string;
+    role_name: string;
+    production_house: string;
+    status: "Selected" | "Under Review" | "Not Selected";
+    instructions?: string;
+  }) {
+    return this.request<NotificationItem>("/notifications/trigger-status-update", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+  // Settings & Account Management API
+  static async getMySettings() {
+    return this.request<UserSettingsData>("/settings/me");
+  }
+
+  static async updateMySettings(data: Partial<UserSettingsData>) {
+    return this.request<UserSettingsData>("/settings/me", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getActiveSessions() {
+    return this.request<ActiveSessionsResponse>("/settings/sessions");
+  }
+
+  static async revokeActiveSession(sessionId: string) {
+    return this.request<{ status: string; revoked_session_id: string }>(`/settings/sessions/${sessionId}`, {
+      method: "DELETE",
+    });
+  }
+
+  static async revokeAllOtherSessions() {
+    return this.request<{ status: string; message: string; revoked_count: number }>("/settings/sessions/revoke-all-others", {
+      method: "POST",
+    });
+  }
+
+  static async changePassword(data: { current_password: string; new_password: string; confirm_password: string }) {
+    return this.request<{ status: string; message: string }>("/settings/security/change-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async toggle2FA(enabled: boolean) {
+    return this.request<Toggle2FAResponseData>("/settings/security/toggle-2fa", {
+      method: "POST",
+      body: JSON.stringify({ enabled }),
+    });
+  }
+
+  static async exportUserData() {
+    return this.request<DataExportData>("/settings/export-data", {
+      method: "POST",
+    });
+  }
+
+  static async deactivateOrDeleteAccount(data: { action: "DEACTIVATE" | "DELETE"; reason?: string; confirmation_text: string }) {
+    return this.request<{ status: string; action: string; message: string }>("/settings/account", {
+      method: "DELETE",
+      body: JSON.stringify(data),
+    });
+  }
 }
+
+export interface NotificationItem {
+  id: string;
+  user_id: string;
+  sender_id?: string | null;
+  title: string;
+  body: string;
+  notification_type: "APPLICATION_STATUS" | "INTERVIEW_SCHEDULE" | "DIRECT_MESSAGE" | "CASTING_ALERT" | "SYSTEM";
+  deep_link_route?: string | null;
+  metadata_json: Record<string, any>;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface NotificationListResponse {
+  items: NotificationItem[];
+  total: number;
+  unread_count: number;
+  page: number;
+  per_page: number;
+}
+
+export interface NotificationPreferences {
+  application_status: boolean;
+  interview_schedule: boolean;
+  direct_message: boolean;
+  casting_alert: boolean;
+  system: boolean;
+  email_enabled: boolean;
+  push_enabled: boolean;
+}
+
+export type AccountType = "CREATIVE_TALENT" | "PRODUCTION_HOUSE";
+export type AvailabilityStatus = "AVAILABLE" | "BUSY" | "UNAVAILABLE";
+export type StreamQuality = "AUTO" | "LOW" | "MEDIUM" | "HIGH";
+export type ThemeMode = "DARK" | "LIGHT" | "SYSTEM";
+
+export interface UserSettingsData {
+  user_id: string;
+  account_type: AccountType;
+  availability_status: AvailabilityStatus;
+  rate_currency: string;
+  day_rate?: number | string | null;
+  primary_role?: string | null;
+  secondary_crafts?: string[] | null;
+  union_affiliations?: string | null;
+  willing_to_travel: boolean;
+  portfolio_url?: string | null;
+  resume_url?: string | null;
+
+  // Production House
+  company_name?: string | null;
+  tax_id?: string | null;
+  registered_address?: string | null;
+  verified_banner: boolean;
+  default_nda_template?: string | null;
+
+  // Security & Verification
+  is_two_factor_enabled: boolean;
+  identity_verified: boolean;
+
+  // Notification Matrix
+  notify_chat: boolean;
+  notify_application_status: boolean;
+  notify_casting_matches: boolean;
+  notify_email_digest: boolean;
+  notify_sms_urgent: boolean;
+  dnd_enabled: boolean;
+  dnd_start_time?: string | null;
+  dnd_end_time?: string | null;
+
+  // Media & Storage
+  stream_quality: StreamQuality;
+  cached_media_bytes: number;
+
+  // Theme & Status
+  theme_mode: ThemeMode;
+  account_status: string;
+  updated_at: string;
+}
+
+export interface ActiveSessionData {
+  session_id: string;
+  device_name: string;
+  device_type: string;
+  ip_address: string;
+  location: string;
+  last_active: string;
+  is_current: boolean;
+}
+
+export interface ActiveSessionsResponse {
+  sessions: ActiveSessionData[];
+  total_count: number;
+}
+
+export interface Toggle2FAResponseData {
+  enabled: boolean;
+  message: string;
+  qr_code_url?: string;
+  backup_codes?: string[];
+}
+
+export interface DataExportData {
+  status: string;
+  download_url: string;
+  file_name: string;
+  size_bytes: number;
+  expires_at: string;
+  message: string;
+}
+
+

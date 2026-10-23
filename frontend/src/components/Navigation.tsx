@@ -151,8 +151,8 @@ export default function Navigation({
         top: 0,
         zIndex: 50,
         background: "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
-        boxShadow: "inset 0 -1px 0 rgba(255, 255, 255, 0.12)",
+        borderBottom: "none",
+        boxShadow: "none",
       }}
     >
       <div
@@ -220,7 +220,7 @@ export default function Navigation({
             background: "rgba(255, 255, 255, 0.04)",
             padding: "4px 6px",
             borderRadius: "var(--radius-full)",
-            border: "1px solid var(--border-subtle)",
+            border: "none",
           }}
         >
           <button

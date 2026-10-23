@@ -48,6 +48,9 @@ class User(Base):
     portfolio_items: Mapped[list["PortfolioItem"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class Profile(Base):

@@ -5,7 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, users, media
+from app.routers import auth, users, media, chat, notifications, settings
+from app.routers.notifications import websocket_notifications_endpoint
 from app.utils.s3 import ensure_bucket_exists
 
 settings = get_settings()
@@ -48,10 +49,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Phase 1 Routers
+# Include Routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(media.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(settings.router, prefix="/api/v1")
+
+
+@app.websocket("/ws/notifications/{user_id}")
+async def ws_notifications_root(websocket: WebSocket, user_id: str):
+    """Direct root WebSocket endpoint for notifications."""
+    await websocket_notifications_endpoint(websocket, user_id)
 
 
 @app.get("/health", tags=["Health"])

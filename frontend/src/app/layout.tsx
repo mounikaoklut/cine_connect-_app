@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   keywords: ["film jobs", "acting auditions", "cinematographer portfolio", "video editor jobs", "bollywood casting", "cine connect"],
 };
 
+import { NotificationProvider } from "@/context/NotificationContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +24,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <NotificationProvider>{children}</NotificationProvider>
+      </body>
     </html>
   );
 }

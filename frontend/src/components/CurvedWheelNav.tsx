@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
@@ -12,6 +11,8 @@ import {
   Settings,
   FileText,
   Layers,
+  ChevronLeft,
+  ChevronRight,
   LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +29,25 @@ export interface NavSet {
   primary: NavPairItem;
   companion: NavPairItem;
 }
+
+export interface NavItem {
+  id: string;
+  label: string;
+  subtitle: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+export const NAVIGATION_ITEMS: NavItem[] = [
+  { id: "home", label: "Home", subtitle: "Studio Feed", path: "/home", icon: Home },
+  { id: "opportunities", label: "Opportunities", subtitle: "Auditions & Roles", path: "/opportunities", icon: Clapperboard },
+  { id: "messages", label: "Messages", subtitle: "Production DMs", path: "/messages", icon: MessageSquare },
+  { id: "applications", label: "My Applications", subtitle: "Applied Castings", path: "/applications", icon: FileText },
+  { id: "notifications", label: "Notifications", subtitle: "Callbacks & Match", path: "/notifications", icon: Bell },
+  { id: "profile", label: "Profile", subtitle: "Showreels & Bio", path: "/profile", icon: UserRound },
+  { id: "portfolio", label: "Media Vault", subtitle: "Portfolios", path: "/portfolio", icon: Layers },
+  { id: "settings", label: "Settings", subtitle: "App & Security", path: "/settings", icon: Settings },
+];
 
 export const NAVIGATION_SETS: NavSet[] = [
   {
@@ -71,168 +91,103 @@ export default function CurvedWheelNav({
   const router = useRouter();
   const activePath = currentActivePath || pathname || "/home";
 
-  // Identify which set contains activePath
-  const getSetIndex = useCallback((path: string): number => {
+  // Identify which item corresponds to activePath
+  const getItemIndex = useCallback((path: string): number => {
     const cleanPath = path === "/" ? "/home" : path;
-    const found = NAVIGATION_SETS.find(
-      (s) => s.primary.path === cleanPath || s.companion.path === cleanPath
-    );
-    return found ? found.id : 0;
+    const found = NAVIGATION_ITEMS.findIndex((item) => item.path === cleanPath);
+    return found !== -1 ? found : 0;
   }, []);
 
-  const [currentSetIndex, setCurrentSetIndex] = useState(() => getSetIndex(activePath));
+  const [currentIndex, setCurrentIndex] = useState(() => getItemIndex(activePath));
   const [dragOffset, setDragOffset] = useState(0);
-  const [wheelRotation, setWheelRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startXRef = useRef(0);
   const startYRef = useRef(0);
-  const dragStartTimeRef = useRef(0);
   const hasSwipedRef = useRef(false);
-  const lastAngleRef = useRef<number | null>(null);
-  const rotaryAccumulatorRef = useRef(0);
   const wheelCooldownRef = useRef(0);
   const navRef = useRef<HTMLElement | null>(null);
 
-  const rotateTo = useCallback(
-    (index: number) => {
-      let next = ((index % NAVIGATION_SETS.length) + NAVIGATION_SETS.length) % NAVIGATION_SETS.length;
-      setCurrentSetIndex(next);
+  useEffect(() => {
+    setCurrentIndex(getItemIndex(activePath));
+  }, [activePath, getItemIndex]);
 
-      const targetSet = NAVIGATION_SETS[next];
+  const navigateTo = useCallback(
+    (index: number) => {
+      const next = ((index % NAVIGATION_ITEMS.length) + NAVIGATION_ITEMS.length) % NAVIGATION_ITEMS.length;
+      setCurrentIndex(next);
+      const targetItem = NAVIGATION_ITEMS[next];
       const cleanPath = activePath === "/" ? "/home" : activePath;
-      if (
-        cleanPath !== targetSet.primary.path &&
-        cleanPath !== targetSet.companion.path
-      ) {
+      if (cleanPath !== targetItem.path) {
         if (onNavigate) {
-          onNavigate(targetSet.primary.path);
+          onNavigate(targetItem.path);
         } else {
-          router.push(targetSet.primary.path);
+          router.push(targetItem.path);
         }
       }
     },
     [activePath, onNavigate, router]
   );
 
-  const handleMouseLeave = () => {
-    if (isDragging) {
-      handlePointerUp();
-    }
-  };
+  const handleNext = () => navigateTo(currentIndex + 1);
+  const handlePrev = () => navigateTo(currentIndex - 1);
 
-  useEffect(() => {
-    setCurrentSetIndex(getSetIndex(activePath));
-  }, [activePath, getSetIndex]);
-
-  const handleRouteSelect = (path: string) => {
-    if (hasSwipedRef.current) return;
-    if (onNavigate) {
-      onNavigate(path);
-    } else {
-      router.push(path);
-    }
-  };
-
-  // Horizontal touch / drag & rotary swipe handling
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
-    dragStartTimeRef.current = Date.now();
     hasSwipedRef.current = false;
-    rotaryAccumulatorRef.current = 0;
-
-    if (navRef.current) {
-      const rect = navRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      lastAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    // Nav bar stays completely still when simply moving cursor - only moves during active drag
     if (!isDragging) return;
-
     const deltaX = e.clientX - startXRef.current;
     const deltaY = e.clientY - startYRef.current;
 
-    if (Math.hypot(deltaX, deltaY) > 6) {
+    if (Math.hypot(deltaX, deltaY) > 8) {
       hasSwipedRef.current = true;
     }
-
     setDragOffset(deltaX);
 
-    // Rotary angular calculation during drag
-    if (navRef.current && lastAngleRef.current !== null) {
-      const rect = navRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const currAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-      let angleDiff = currAngle - lastAngleRef.current;
-      if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-      if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-      rotaryAccumulatorRef.current += angleDiff * (180 / Math.PI);
-      lastAngleRef.current = currAngle;
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+      startXRef.current = e.clientX;
+      setIsDragging(false);
+      setDragOffset(0);
     }
-
-    setWheelRotation(deltaX * 0.45 + rotaryAccumulatorRef.current * 0.4);
   };
 
   const handlePointerUp = () => {
-    if (!isDragging) return;
     setIsDragging(false);
-
-    const elapsed = Math.max(1, Date.now() - dragStartTimeRef.current);
-    const velocity = dragOffset / elapsed;
-    const totalRotary = rotaryAccumulatorRef.current;
-
-    const isSwipeLeft = dragOffset < -26 || velocity < -0.25 || totalRotary < -30;
-    const isSwipeRight = dragOffset > 26 || velocity > 0.25 || totalRotary > 30;
-
-    if (isSwipeLeft) {
-      rotateTo(currentSetIndex + 1);
-    } else if (isSwipeRight) {
-      rotateTo(currentSetIndex - 1);
-    }
-
     setDragOffset(0);
-    setWheelRotation(0);
-    lastAngleRef.current = null;
-    rotaryAccumulatorRef.current = 0;
-
-    setTimeout(() => {
-      hasSwipedRef.current = false;
-    }, 120);
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLElement>) => {
+  const handleWheel = (e: React.WheelEvent) => {
     const now = Date.now();
-    if (now - wheelCooldownRef.current < 260) return;
+    if (now - wheelCooldownRef.current < 220) return;
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(delta) > 16) {
+    if (Math.abs(delta) > 10) {
       wheelCooldownRef.current = now;
       if (delta > 0) {
-        rotateTo(currentSetIndex + 1);
+        handleNext();
       } else {
-        rotateTo(currentSetIndex - 1);
+        handlePrev();
       }
     }
   };
 
-  const currentSet = NAVIGATION_SETS[currentSetIndex];
-  const cleanPath = activePath === "/" ? "/home" : activePath;
-
-  const isPrimaryActive = cleanPath === currentSet.primary.path;
-  const isCompanionActive = cleanPath === currentSet.companion.path;
+  const currentItem = NAVIGATION_ITEMS[currentIndex] || NAVIGATION_ITEMS[0];
+  const wheelRotation = currentIndex * 45 + dragOffset * 0.4;
 
   return (
     <nav
       ref={navRef}
-      aria-label="CineConnect Curved Bottom Navigation"
-      className={`fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md select-none pb-[env(safe-area-inset-bottom,10px)] ${className}`}
-      onMouseLeave={handleMouseLeave}
+      aria-label="CineConnect Semi-Circle Rotating Wheel Navigation"
+      className={`fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md select-none pb-[env(safe-area-inset-bottom,6px)] ${className}`}
+      onMouseLeave={handlePointerUp}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -240,132 +195,218 @@ export default function CurvedWheelNav({
       onWheel={handleWheel}
       style={{
         transform: isDragging ? `translateX(${dragOffset * 0.15}px)` : "none",
-        transition: isDragging
-          ? "none"
-          : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+        transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
         cursor: isDragging ? "grabbing" : "default",
         touchAction: "pan-y",
       }}
     >
-      {/* Transparent crystal glass curved dock */}
-      <div className="relative overflow-hidden rounded-t-[28px] border-t border-white/25 bg-gradient-to-b from-white/[0.06] to-transparent px-4 pt-2 pb-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-        {/* Subtle glass specular rim line */}
-        <div
-          className="absolute top-0 left-1/4 right-1/4 h-[1.5px] rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-          style={{
-            transform: isDragging ? `translateX(${dragOffset * 0.3}px)` : "none",
-            transition: isDragging ? "none" : "transform 0.45s ease",
-          }}
-        />
+      {/* Prominent Semi-Circle Rotating Wheel Crystal Dock */}
+      <div
+        className="relative h-[124px] overflow-hidden border-t-[2.5px] border-[#FF9800] bg-gradient-to-b from-[#101420]/96 via-[#080a10]/99 to-[#04060a]/99 px-2 pt-1.5 shadow-[0_-8px_28px_rgba(255,152,0,0.45),0_-14px_40px_rgba(0,0,0,0.95)] backdrop-blur-2xl"
+        style={{
+          borderRadius: "50% 50% 0 0 / 44px 44px 0 0",
+        }}
+      >
+        {/* Top Amber Specular Glare Arc */}
+        <div className="absolute top-0 left-[15%] right-[15%] h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-[#FFE082] via-[#FF9800] to-transparent shadow-[0_0_14px_#FF9800,0_0_24px_rgba(255,152,0,0.7)]" />
 
-        {/* 4 Set Indicator Dots */}
+        {/* Semi-Circle Arc SVG Rim Highlight Contour */}
+        <svg
+          className="pointer-events-none absolute top-0 left-0 h-[54px] w-full overflow-visible"
+          viewBox="0 0 400 54"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="curvedWheelRim" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="20%" stopColor="rgba(255, 152, 0, 0.35)" />
+              <stop offset="50%" stopColor="rgba(255, 152, 0, 1)" />
+              <stop offset="80%" stopColor="rgba(255, 152, 0, 0.35)" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M 0 44 Q 200 2 400 44"
+            fill="none"
+            stroke="url(#curvedWheelRim)"
+            strokeWidth="2.5"
+          />
+        </svg>
+
+        {/* Rotating Wheel Dial Disc with Concentric Track & 8 Graduation Ticks */}
         <div
-          className="absolute top-1.5 left-0 right-0 z-20 flex justify-center gap-1.5"
+          className="pointer-events-none absolute -bottom-[150px] left-1/2 h-[350px] w-[350px] -ml-[175px] rounded-full border-2 border-dashed border-[#FF9800]/30 shadow-[inset_0_0_30px_rgba(255,152,0,0.12)]"
           style={{
-            transform: isDragging ? `translateX(${dragOffset * 0.2}px)` : "none",
-            transition: isDragging ? "none" : "transform 0.45s ease",
+            transform: `rotate(${wheelRotation}deg)`,
+            transition: isDragging ? "none" : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
           }}
         >
-          {NAVIGATION_SETS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              title={s.name}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => rotateTo(s.id)}
-              className={`h-1 rounded-full transition-all duration-200 ${
-                currentSetIndex === s.id
-                  ? "w-4 bg-[#FF9800] shadow-[0_0_6px_#FF9800]"
-                  : "w-1.5 bg-white/25 hover:bg-white/40"
-              }`}
+          {/* Inner concentric bezel */}
+          <div className="absolute inset-[26px] rounded-full border border-[#FF9800]/15" />
+
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
+            <div
+              key={deg}
+              className="absolute top-0 left-1/2 h-3 w-[2px] -ml-[1px]"
+              style={{
+                background: i === currentIndex ? "#FF9800" : "rgba(255, 255, 255, 0.28)",
+                boxShadow: i === currentIndex ? "0 0 10px #FF9800" : "none",
+                transformOrigin: "50% 175px",
+                transform: `rotate(${deg}deg)`,
+              }}
             />
           ))}
         </div>
 
-        {/* Exactly Two Navigation Options on the Curved Dock */}
-        <div className="relative flex h-[68px] items-center justify-center px-4">
-          <div
-            className="relative flex flex-1 items-center justify-around max-w-[280px]"
-            style={{
-              transform: isDragging
-                ? `translateX(${dragOffset}px) rotate(${wheelRotation * 0.45}deg)`
-                : "none",
-              transition: isDragging
-                ? "none"
-                : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
-            }}
-          >
-            {/* Option 1 (Primary) */}
-            <WheelOptionItem
-              item={currentSet.primary}
-              isActive={isPrimaryActive}
-              onSelect={() => handleRouteSelect(currentSet.primary.path)}
-            />
+        {/* All 8 Destinations Arrayed Along Semi-Circle Trigonometric Arc (100% Fully Visible) */}
+        <div className="relative z-20 h-[82px] w-full">
+          {NAVIGATION_ITEMS.map((item, idx) => {
+            const isActive = currentIndex === idx;
+            const IconComp = item.icon;
 
-            {/* Option 2 (Companion) */}
-            <WheelOptionItem
-              item={currentSet.companion}
-              isActive={isCompanionActive}
-              onSelect={() => handleRouteSelect(currentSet.companion.path)}
-            />
+            // 8 exact angles spanning the upper semi-circle from -65° to +65°
+            const ARC_ANGLES = [-65, -46.5, -28, -9.5, 9.5, 28, 46.5, 65];
+            const angleDeg = ARC_ANGLES[idx];
+            const rad = (angleDeg * Math.PI) / 180;
+
+            // Semi-circular trigonometry with 148px radius
+            const xOffset = Math.sin(rad) * 148;
+            // Parabolic vertical drop: apex is highest at y = 16px, edges at y = 45px
+            const yOffset = 16 + (1 - Math.cos(rad)) * 46;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                id={`curved-nav-item-${item.id}`}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigateTo(idx);
+                }}
+                title={item.label}
+                className="group absolute flex flex-col items-center justify-center cursor-pointer outline-none"
+                style={{
+                  left: `calc(50% + ${xOffset}px)`,
+                  top: `${yOffset}px`,
+                  transform: `translate(-50%, -50%) ${isActive ? "scale(1.2) translateY(-4px)" : "scale(0.96)"}`,
+                  transition: "all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+                  zIndex: isActive ? 35 : 20,
+                }}
+              >
+                {/* Glowing Aura Ring for Active 1-by-1 Item */}
+                {isActive && (
+                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF9800]/45 blur-lg" />
+                )}
+
+                {/* Circular Icon Container */}
+                <div
+                  className={`relative flex items-center justify-center rounded-full transition-all duration-250 ${
+                    isActive
+                      ? "h-[38px] w-[38px] border-[2.5px] border-white bg-gradient-to-tr from-[#FFB300] to-[#FF9800] text-[#08090C] shadow-[0_4px_18px_rgba(255,152,0,0.8),0_0_12px_rgba(255,152,0,0.5)]"
+                      : "h-7 w-7 border border-white/16 bg-[#141824]/88 text-slate-300 shadow-sm hover:border-white/30 hover:text-white"
+                  }`}
+                >
+                  <IconComp
+                    size={isActive ? 20 : 14}
+                    color={isActive ? "#08090C" : "#CBD5E1"}
+                    strokeWidth={isActive ? 2.6 : 2}
+                  />
+                </div>
+
+                {/* Option Label */}
+                <div
+                  className={`mt-0.5 rounded px-1 transition-all duration-200 ${
+                    isActive
+                      ? "border border-[#FF9800] bg-[#101219] shadow-[0_2px_6px_rgba(255,152,0,0.4)]"
+                      : "bg-transparent"
+                  }`}
+                >
+                  <span
+                    className={`whitespace-nowrap ${
+                      item.label.length > 8 ? "text-[6.8px]" : "text-[7.5px]"
+                    } ${isActive ? "font-extrabold text-white" : "font-semibold text-slate-400"}`}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Bottom Controls: Prev (←) + Active Subtitle Pill + 8 Indicator Beads + Next (→) */}
+        <div className="relative z-30 flex items-center justify-between px-2 pt-0.5 pb-1">
+          {/* Prev 1-by-1 Stepper Button */}
+          <button
+            type="button"
+            id="curved-nav-prev-btn"
+            title="Previous destination"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+            className="flex items-center gap-1 rounded-xl border border-white/16 bg-white/[0.08] px-2.5 py-0.5 text-slate-200 transition-colors hover:border-[#FF9800]/50 hover:text-white active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft size={13} strokeWidth={2.5} />
+            <span className="text-[8px] font-bold">Prev</span>
+          </button>
+
+          {/* Center: Active Tab Pill & 8-Dot Dial Stream */}
+          <div className="flex items-center gap-2">
+            {/* Active Tab Subtitle Pill */}
+            <div className="flex items-center gap-1 rounded-lg border border-[#FF9800]/50 bg-[#FF9800]/18 px-2 py-0.5">
+              <span className="text-[8px] font-extrabold text-[#FF9800]">
+                {currentItem.label}
+              </span>
+              <span className="text-[7.5px] font-semibold text-slate-200">
+                • {currentItem.subtitle}
+              </span>
+            </div>
+
+            {/* 8 Indicator Beads */}
+            <div className="flex items-center gap-1">
+              {NAVIGATION_ITEMS.map((item, idx) => {
+                const isSelected = currentIndex === idx;
+                return (
+                  <button
+                    key={`indicator-${item.id}`}
+                    type="button"
+                    title={item.label}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateTo(idx);
+                    }}
+                    className={`h-1 cursor-pointer rounded-full transition-all duration-200 ${
+                      isSelected
+                        ? "w-[15px] bg-[#FF9800] shadow-[0_0_6px_#FF9800]"
+                        : "w-1 bg-white/25 hover:bg-white/45"
+                    }`}
+                  />
+                );
+              })}
+            </div>
           </div>
+
+          {/* Next 1-by-1 Stepper Button */}
+          <button
+            type="button"
+            id="curved-nav-next-btn"
+            title="Next destination"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+            className="flex items-center gap-1 rounded-xl border border-white/16 bg-white/[0.08] px-2.5 py-0.5 text-slate-200 transition-colors hover:border-[#FF9800]/50 hover:text-white active:scale-95 cursor-pointer"
+          >
+            <span className="text-[8px] font-bold">Next</span>
+            <ChevronRight size={13} strokeWidth={2.5} />
+          </button>
         </div>
       </div>
     </nav>
   );
 }
-
-function WheelOptionItem({
-  item,
-  isActive,
-  onSelect,
-}: {
-  item: NavPairItem;
-  isActive: boolean;
-  onSelect: () => void;
-}) {
-  const IconComponent = item.icon;
-
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
-      className="group relative flex flex-col items-center justify-center focus:outline-none z-10 cursor-pointer"
-      aria-label={`${item.label} (${isActive ? "Active" : "Inactive"})`}
-    >
-      {/* Active Option: Amber-orange circular button, white border, soft glow */}
-      {isActive ? (
-        <>
-          {/* Soft orange glow */}
-          <div className="absolute -top-1 h-12 w-12 rounded-full bg-[#FF9800]/25 blur-md pointer-events-none" />
-
-          {/* Compact Amber Circular Button */}
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-1.5 border-white bg-[#FF9800] text-[#08090C] shadow-[0_2px_12px_rgba(255,152,0,0.65)] transition-transform group-hover:scale-105 active:scale-95">
-            <IconComponent className="h-5 w-5 stroke-[2.4]" />
-          </div>
-
-          {/* Translucent capsule with amber border and white text directly below */}
-          <span className="mt-1 rounded-full border border-[#FF9800]/80 bg-black/45 px-2.5 py-0.5 text-[9.5px] font-extrabold tracking-wide text-[#F5F5F5] shadow-sm shadow-[#FF9800]/30">
-            {item.label}
-          </span>
-        </>
-      ) : (
-        /* Inactive Option: Sleek translucent dark circular button, thin border, muted icon */
-        <>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/[0.05] text-[#858995] transition-all hover:border-[#FF9800]/40 hover:text-[#F5F5F5] active:scale-95">
-            <IconComponent className="h-4.5 w-4.5 stroke-[1.8]" />
-          </div>
-
-          {/* Subtle secondary label */}
-          <span className="mt-1 text-[9.5px] font-semibold text-[#858995] transition-colors group-hover:text-[#F5F5F5]">
-            {item.label}
-          </span>
-        </>
-      )}
-    </button>
-  );
-}
-

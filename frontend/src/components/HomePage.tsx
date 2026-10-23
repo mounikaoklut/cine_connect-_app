@@ -43,6 +43,7 @@ import {
   PitchDeck,
   ApplicationPipelineItem,
 } from "@/lib/mockData";
+import CineStoriesSection from "@/components/CineStoriesSection";
 
 interface HomePageProps {
   onSwitchToLanding: () => void;
@@ -154,7 +155,7 @@ export default function HomePage({
               { id: "castings" as const, label: "Audition Board" },
               { id: "talent" as const, label: "Talent Vault" },
               { id: "pitches" as const, label: "Pitch Decks" },
-              { id: "pipeline" as const, label: "My Pipeline" },
+              { id: "pipeline" as const, label: "My Applications" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -358,7 +359,7 @@ export default function HomePage({
                   { id: "castings" as const, label: "Auditions & Roles", icon: <Clapperboard size={16} /> },
                   { id: "talent" as const, label: "Talent Directory", icon: <UserCheck size={16} /> },
                   { id: "pitches" as const, label: "Screenplay Vault", icon: <FileText size={16} /> },
-                  { id: "pipeline" as const, label: "Audition Pipeline", icon: <TrendingUp size={16} /> },
+                  { id: "pipeline" as const, label: "My Applications", icon: <TrendingUp size={16} /> },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -492,6 +493,11 @@ export default function HomePage({
                   >
                     + Search Opportunities
                   </button>
+                </div>
+
+                {/* Square-Shaped Stories Section */}
+                <div style={{ marginBottom: "6px" }}>
+                  <CineStoriesSection onOpenCreateStory={onOpenCreatePost} />
                 </div>
 
                 {/* Status Post Composer */}
