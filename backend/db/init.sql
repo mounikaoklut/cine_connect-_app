@@ -9,6 +9,7 @@ CREATE TABLE users (
     email           VARCHAR(255) UNIQUE,
     phone           VARCHAR(20) UNIQUE,
     password_hash   VARCHAR(255),
+    
     auth_provider   VARCHAR(20) DEFAULT 'email',
     email_verified  BOOLEAN DEFAULT FALSE,
     phone_verified  BOOLEAN DEFAULT FALSE,
@@ -193,6 +194,7 @@ CREATE TABLE messages (
     status          VARCHAR(20) DEFAULT 'sent',
     created_at      TIMESTAMP DEFAULT NOW()
 );
+
 
 CREATE INDEX idx_messages_conversation ON messages(conversation_id, created_at DESC);
 
