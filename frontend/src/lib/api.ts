@@ -116,7 +116,25 @@ export class ApiClient {
   }
 
   // Auth
-  static async register(data: { email: string; password: string; name: string }) {
+  static async registerTalent(data: { email: string; password: string; phone: string; name: string; craft?: string; location?: string }) {
+    const res = await this.request<any>("/auth/register/talent", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    this.setAuth(res.access_token, res.user);
+    return res;
+  }
+
+  static async registerProduction(data: { company_name: string; email: string; phone: string; password: string; location?: string; description?: string }) {
+    const res = await this.request<any>("/auth/register/production", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    this.setAuth(res.access_token, res.user);
+    return res;
+  }
+
+  static async register(data: { email: string; password: string; name: string; phone?: string; account_type?: string }) {
     const res = await this.request<any>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
@@ -127,22 +145,6 @@ export class ApiClient {
 
   static async login(data: { email: string; password: string }) {
     const res = await this.request<any>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    this.setAuth(res.access_token, res.user);
-    return res;
-  }
-
-  static async sendOtp(phone: string) {
-    return this.request<{ message: string }>("/auth/otp/send", {
-      method: "POST",
-      body: JSON.stringify({ phone }),
-    });
-  }
-
-  static async verifyOtp(data: { phone: string; otp: string }) {
-    const res = await this.request<any>("/auth/otp/verify", {
       method: "POST",
       body: JSON.stringify(data),
     });
