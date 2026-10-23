@@ -14,7 +14,12 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context for startup and shutdown hooks."""
-    # Startup: ensure S3/MinIO bucket exists if configured
+    try:
+        from app.database import init_db
+        await init_db()
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+
     try:
         ensure_bucket_exists()
     except Exception as e:

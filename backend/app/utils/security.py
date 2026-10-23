@@ -13,8 +13,8 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Password hashing context — Argon2 primary, bcrypt fallback
-pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
+# Password hashing context — bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
