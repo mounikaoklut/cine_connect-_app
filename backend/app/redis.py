@@ -1,4 +1,4 @@
-"""Redis connection pool for sessions, OTPs, rate limiting, and caching."""
+"""Redis connection pool for token blacklisting, rate limiting, and caching."""
 
 # pyrefly: ignore [missing-import]
 import redis.asyncio as redis

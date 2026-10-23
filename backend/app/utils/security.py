@@ -1,4 +1,4 @@
-"""Security utilities: password hashing, JWT tokens, OTP generation."""
+"""Security utilities: password hashing, JWT tokens, and phone normalization."""
 
 import secrets
 import string
@@ -9,12 +9,27 @@ from uuid import UUID
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+import re
 from app.config import get_settings
 
 settings = get_settings()
 
 # Password hashing context — Argon2 primary, bcrypt fallback
 pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
+
+
+def normalize_phone(phone: str) -> str:
+    """Normalize phone number by stripping whitespace, dashes, dots, and parentheses.
+    Preserves leading '+' if present.
+    Example: '+1 (555) 234-5678' -> '+15552345678'
+    """
+    if not phone:
+        return ""
+    phone = phone.strip()
+    has_plus = phone.startswith("+")
+    digits = re.sub(r"\D", "", phone)
+    return f"+{digits}" if has_plus else digits
+
 
 
 def hash_password(password: str) -> str:
@@ -62,12 +77,6 @@ def decode_token(token: str) -> dict[str, Any] | None:
         return None
 
 
-def generate_otp(length: int | None = None) -> str:
-    """Generate a numeric OTP of configured length."""
-    otp_length = length or settings.OTP_LENGTH
-    return "".join(secrets.choice(string.digits) for _ in range(otp_length))
-
-
 def create_password_reset_token(user_id: UUID) -> str:
     """Create a short-lived token for password reset (30 min)."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=30)
@@ -77,3 +86,15 @@ def create_password_reset_token(user_id: UUID) -> str:
         "type": "password_reset",
     }
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def create_email_verification_token(user_id: UUID) -> str:
+    """Create a token for email verification (24 hours)."""
+    expire = datetime.now(timezone.utc) + timedelta(hours=24)
+    payload = {
+        "sub": str(user_id),
+        "exp": expire,
+        "type": "email_verification",
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
