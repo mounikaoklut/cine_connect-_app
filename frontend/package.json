@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android",
+    "cap:build": "next build && cap sync android",
+    "android:apk": "next build && cap sync android && cd android && gradlew.bat assembleDebug"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

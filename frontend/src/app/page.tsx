@@ -1,45 +1,45 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import LandingPage from "@/components/LandingPage";
+import HomePage from "@/components/HomePage";
+import ProfilePortal from "@/components/ProfilePortal";
+import AuditionModal from "@/components/AuditionModal";
+import ShowreelModal from "@/components/ShowreelModal";
+import PitchModal from "@/components/PitchModal";
+import CreatePostModal from "@/components/CreatePostModal";
+import CurvedWheelNav from "@/components/CurvedWheelNav";
 import {
-  Film,
-  Camera,
-  Clapperboard,
-  CheckCircle2,
-  AlertCircle,
-  Upload,
-  Plus,
-  Play,
-  Share2,
-  Edit3,
-  MapPin,
-  Calendar,
-  Languages,
-  Award,
-  Video,
-  Image as ImageIcon,
-  FileText,
-  Trash2,
-  ExternalLink,
-  ShieldCheck,
-  Sparkles,
-  Search,
-  Bell,
-  MessageSquare,
-  Lock,
-  ChevronRight,
-  X,
-  Phone,
-  Mail,
-} from "lucide-react";
-import { ApiClient, UserProfile, CompletenessData } from "@/lib/api";
+  ApiClient,
+  UserProfile,
+  CompletenessData,
+} from "@/lib/api";
+import {
+  CastingCall,
+  TalentItem,
+  PitchDeck,
+  FeedPost,
+  ApplicationPipelineItem,
+  OPEN_CASTINGS,
+  FEATURED_TALENT,
+  PITCH_DECKS,
+  HOME_FEED_POSTS,
+  MY_APPLICATIONS,
+} from "@/lib/mockData";
+import { X, Clapperboard, AlertCircle } from "lucide-react";
 
-export default function UserPortalPage() {
-  const [activeTab, setActiveTab] = useState<"profile" | "portfolio" | "experience" | "verification">("profile");
-  const [showEditModal, setShowEditModal] = useState(false);
+export default function CineConnectMasterPage() {
+  // Master View: Landing Page vs Home Studio Hub vs My Profile
+  const [currentView, setCurrentView] = useState<"landing" | "home" | "profile">("landing");
+
+  // Modals state
+  const [activeAudition, setActiveAudition] = useState<CastingCall | null>(null);
+  const [activeShowreel, setActiveShowreel] = useState<TalentItem | null>(null);
+  const [activePitch, setActivePitch] = useState<PitchDeck | null>(null);
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
   // Auth Form State
   const [accountTypeTab, setAccountTypeTab] = useState<"talent" | "production">("talent");
@@ -52,7 +52,17 @@ export default function UserPortalPage() {
   const [authError, setAuthError] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
 
-  // Demo user fallback if backend isn't running yet locally
+  // Feed & Pipeline State
+  const [feedPosts, setFeedPosts] = useState<FeedPost[]>(HOME_FEED_POSTS);
+  const [pipelineItems, setPipelineItems] = useState<ApplicationPipelineItem[]>(MY_APPLICATIONS);
+
+  // Upload Modal State
+  const [newPortTitle, setNewPortTitle] = useState("");
+  const [newPortType, setNewPortType] = useState<"photo" | "showreel" | "resume">("showreel");
+  const [newPortDesc, setNewPortDesc] = useState("");
+  const [newPortUrl, setNewPortUrl] = useState("");
+
+  // User Profile
   const [userData, setUserData] = useState<UserProfile>({
     id: "d3b07384-d113-4a44-9c81-c30089f23d88",
     email: "kabir.mehra@cineconnect.com",
@@ -63,7 +73,7 @@ export default function UserPortalPage() {
     identity_verified: true,
     profile: {
       name: "Kabir Mehra",
-      bio: "Method actor and theater artist with 7+ years of experience across independent cinema, OTT thrillers, and commercial campaigns. Trained at the National School of Drama.",
+      bio: "Method actor and theater artist with 8+ years across independent cinema, OTT thrillers, and commercial campaigns. Trained at the National School of Drama.",
       photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
       primary_craft: "Actor",
       secondary_crafts: ["Voice Over Artist", "Action / Stunts"],
@@ -96,7 +106,7 @@ export default function UserPortalPage() {
         role_type: "Feature Film",
         start_date: "2024-03-01",
         end_date: "2024-11-15",
-        description: "Played the layered antagonist in psychological crime thriller 'Shadow of Verity'. Received praise for intensity in 12-minute unedited monologue scene.",
+        description: "Played the layered antagonist in psychological crime thriller 'Shadow of Verity'. Received praise for intensity in 12-minute monologue scene.",
       },
       {
         id: "exp-2",
@@ -138,21 +148,12 @@ export default function UserPortalPage() {
       },
       {
         id: "port-3",
-        type: "photo",
-        s3_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
-        title: "Period Drama Character Look",
-        description: "Prosthetics and 1940s vintage styling test for historical series.",
-        is_public: true,
-        sort_order: 2,
-      },
-      {
-        id: "port-4",
         type: "resume",
         s3_url: "#",
         title: "Kabir_Mehra_Official_Resume_2026.pdf",
         description: "Verified theatrical and film credits with agent contact details.",
         is_public: true,
-        sort_order: 3,
+        sort_order: 2,
       },
     ],
   });
@@ -166,21 +167,17 @@ export default function UserPortalPage() {
     ],
   });
 
-  // Upload modal state
-  const [newPortTitle, setNewPortTitle] = useState("");
-  const [newPortType, setNewPortType] = useState<"photo" | "showreel" | "video" | "resume">("showreel");
-  const [newPortDesc, setNewPortDesc] = useState("");
-  const [newPortUrl, setNewPortUrl] = useState("");
-
-  // Edit profile state
-  const [editName, setEditName] = useState(userData.profile?.name || "");
-  const [editBio, setEditBio] = useState(userData.profile?.bio || "");
-  const [editCraft, setEditCraft] = useState(userData.profile?.primary_craft || "Actor");
-  const [editCity, setEditCity] = useState(userData.profile?.city || "Mumbai");
-
-  // Attempt to load from real backend on mount
+  // On mount check query parameter or cached user
   useEffect(() => {
-    async function loadData() {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get("view");
+      if (viewParam === "home" || viewParam === "landing" || viewParam === "profile") {
+        setCurrentView(viewParam);
+      }
+    }
+
+    async function loadBackendData() {
       try {
         const me = await ApiClient.getMe();
         if (me && me.id) {
@@ -189,10 +186,10 @@ export default function UserPortalPage() {
           if (comp) setCompleteness(comp);
         }
       } catch {
-        // Fallback to rich demo data when backend is starting or offline
+        // Mock data already populated
       }
     }
-    loadData();
+    loadBackendData();
   }, []);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -608,47 +605,69 @@ export default function UserPortalPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px" }}>
-                <button onClick={() => setShowEditModal(false)} className="btn-secondary">
-                  Cancel
-                </button>
-                <button onClick={handleSaveProfile} className="btn-primary">
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* ===================== MODALS ===================== */}
+      <AuditionModal
+        casting={activeAudition}
+        onClose={() => setActiveAudition(null)}
+        onSubmitSuccess={handleAuditionSubmitted}
+      />
+
+      <ShowreelModal
+        talent={activeShowreel}
+        onClose={() => setActiveShowreel(null)}
+        onOpenMessage={(talentName) => {
+          setActiveShowreel(null);
+          setCurrentView("home");
+          alert(`Inquiry initiated with ${talentName}. Opened in Studio Messaging.`);
+        }}
+      />
+
+      <PitchModal
+        pitch={activePitch}
+        onClose={() => setActivePitch(null)}
+      />
+
+      {showCreatePost && (
+        <CreatePostModal
+          onClose={() => setShowCreatePost(false)}
+          onPostCreated={handlePostCreated}
+          userName={userData.profile?.name || "Kabir Mehra"}
+          userCraft={userData.profile?.primary_craft || "Actor"}
+        />
       )}
 
       {/* ===================== MODAL: UPLOAD PORTFOLIO ===================== */}
       {showUploadModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-            padding: "20px",
-          }}
-        >
-          <div className="glass-panel" style={{ width: "100%", maxWidth: "560px", padding: "32px", position: "relative" }}>
+        <div className="modal-backdrop" onClick={() => setShowUploadModal(false)}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "560px", padding: "32px", position: "relative" }}
+          >
             <button
               onClick={() => setShowUploadModal(false)}
-              style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                background: "none",
+                border: "none",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+              }}
             >
               <X size={20} />
             </button>
 
-            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "20px" }}>Add Portfolio Showreel / Photo</h3>
+            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "20px" }}>
+              Add Portfolio Showreel / Photo
+            </h3>
 
             <form onSubmit={handleAddPortfolio} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Media Type</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
+                  Media Type
+                </label>
                 <select
                   className="input-field"
                   value={newPortType}
@@ -661,7 +680,9 @@ export default function UserPortalPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Title</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
+                  Title
+                </label>
                 <input
                   type="text"
                   required
@@ -673,10 +694,12 @@ export default function UserPortalPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Media URL (or S3 Asset)</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
+                  Media URL (or S3 Asset)
+                </label>
                 <input
                   type="url"
-                  placeholder="https://..."
+                  placeholder="https://images.unsplash.com/..."
                   className="input-field"
                   value={newPortUrl}
                   onChange={(e) => setNewPortUrl(e.target.value)}
@@ -684,7 +707,9 @@ export default function UserPortalPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Description</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
+                  Description
+                </label>
                 <textarea
                   rows={3}
                   placeholder="Context, director, or production house details..."
@@ -725,7 +750,15 @@ export default function UserPortalPage() {
           <div className="glass-panel" style={{ width: "100%", maxWidth: "460px", padding: "32px", position: "relative" }}>
             <button
               onClick={() => setShowAuthModal(false)}
-              style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                background: "none",
+                border: "none",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+              }}
             >
               <X size={20} />
             </button>
@@ -851,7 +884,9 @@ export default function UserPortalPage() {
             <form onSubmit={handleAuthSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               {authMode === "register" && accountTypeTab === "talent" && (
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Full Name</label>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     required
@@ -878,7 +913,9 @@ export default function UserPortalPage() {
               )}
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Email Address</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>
+                  Email Address
+                </label>
                 <input
                   type="email"
                   required
@@ -904,7 +941,9 @@ export default function UserPortalPage() {
               )}
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Password</label>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>
+                  Password
+                </label>
                 <input
                   type="password"
                   required
