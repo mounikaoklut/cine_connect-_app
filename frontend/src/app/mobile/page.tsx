@@ -158,13 +158,13 @@ function CineInstagramReelCard({
           .then(() => {
             setIsPlaying(true);
             if (audio && !isMuted) {
-              audio.play().catch(() => {});
+              audio.play().catch(() => { });
             }
           })
           .catch(() => {
             // Browser restricted unmuted autoplay; fallback to muted
             video.muted = true;
-            video.play().then(() => setIsPlaying(true)).catch(() => {});
+            video.play().then(() => setIsPlaying(true)).catch(() => { });
           });
       }
     } else {
@@ -186,7 +186,7 @@ function CineInstagramReelCard({
       audio.muted = isMuted;
       if (isActive && !isMuted && isPlaying) {
         audio.currentTime = video?.currentTime || 0;
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
       } else if (isMuted) {
         audio.pause();
       }
@@ -235,10 +235,10 @@ function CineInstagramReelCard({
             .play()
             .then(() => {
               setIsPlaying(true);
-              if (audio && !isMuted) audio.play().catch(() => {});
+              if (audio && !isMuted) audio.play().catch(() => { });
               setPlayPauseState("play");
             })
-            .catch(() => {});
+            .catch(() => { });
         } else {
           video.pause();
           if (audio) audio.pause();
@@ -852,7 +852,7 @@ export default function MobileAppSimulatorPage() {
           text: post.content,
           url: window.location.href,
         })
-        .catch(() => {});
+        .catch(() => { });
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(`${window.location.origin}#post-${post.id}`);
       setToastMessage("Post link copied to clipboard! 📋");
@@ -917,6 +917,7 @@ export default function MobileAppSimulatorPage() {
         avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
         verified: true,
       },
+
       title: "Interrogation Room - Unbroken Monologue",
       description: "Screen test for Netflix psychological thriller 'Shadow of Verity'. Single continuous monologue take under harsh tungsten lamp.",
       videoUrl: "/reels/reel1.mp4",
@@ -1727,1074 +1728,1074 @@ export default function MobileAppSimulatorPage() {
                   border: "1px solid var(--border-subtle)",
                   borderRadius: "12px",
                   padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                cursor: "pointer",
-              }}
-            >
-              <img
-                src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
-                alt="Avatar"
-                style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }}
-              />
-              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                Share an audition tape or update...
-              </span>
-            </div>
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  cursor: "pointer",
+                }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
+                  alt="Avatar"
+                  style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }}
+                />
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  Share an audition tape or update...
+                </span>
+              </div>
 
-            {/* Feed Cards */}
-            {feedPosts.map((post, postIndex) => (
-              <React.Fragment key={post.id}>
-                {hiddenPostIds.includes(post.id) ? (
-                  <div
-                    style={{
-                      background: "#0c1017",
-                      border: "1px dashed rgba(255, 255, 255, 0.15)",
-                      borderRadius: "14px",
-                      padding: "12px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <EyeOff size={16} color="var(--text-muted)" />
-                      <span style={{ fontSize: "0.78rem" }}>
-                        Post hidden • You'll see fewer posts like this.
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleUndoHidePost(post.id)}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#FF9800",
-                        fontWeight: 700,
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      Undo
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      background: "#0f131c",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "14px",
-                      padding: "14px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <img
-                          src={post.author.avatar}
-                          alt="Author"
-                          style={{ width: "34px", height: "34px", borderRadius: "50%", objectFit: "cover" }}
-                        />
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                              {post.author.name}
-                            </span>
-                            {post.author.verified && <CheckCircle2 size={12} color="var(--accent-gold)" />}
-                          </div>
-                          <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                            {post.author.craft} • {post.timestamp}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        {/* Instagram-style Follow / Following Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleFollow(post.author.name)}
-                          style={{
-                            background: followedAuthors.includes(post.author.name)
-                              ? "rgba(255, 255, 255, 0.08)"
-                              : "#FF9800",
-                            color: followedAuthors.includes(post.author.name) ? "#E2E8F0" : "#08090C",
-                            border: followedAuthors.includes(post.author.name)
-                              ? "1px solid rgba(255, 255, 255, 0.2)"
-                              : "none",
-                            padding: "4px 12px",
-                            borderRadius: "8px",
-                            fontSize: "0.72rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            transition: "all 0.18s ease",
-                            boxShadow: followedAuthors.includes(post.author.name)
-                              ? "none"
-                              : "0 2px 6px rgba(255, 152, 0, 0.3)",
-                          }}
-                        >
-                          {followedAuthors.includes(post.author.name) ? (
-                            <>
-                              <Check size={12} strokeWidth={2.8} />
-                              <span>Following</span>
-                            </>
-                          ) : (
-                            <span>Follow</span>
-                          )}
-                        </button>
-
-                        {/* 3-Dots Menu with Interested, Not Interested, Report */}
-                        <PostActionMenu
-                          itemId={post.id}
-                          isOpen={openMenuPostId === post.id}
-                          onToggle={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
-                          onInterested={handlePostInterested}
-                          onNotInterested={handlePostNotInterested}
-                          onReport={handlePostReport}
-                        />
-                      </div>
-                    </div>
-
-                    <p style={{ fontSize: "0.82rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
-                      {post.content}
-                    </p>
-
-                    {/* Media Preview: Video Player (with Background Autoplay) or Photo */}
-                    {(() => {
-                      const fallbackVideos: Record<string, string> = {
-                        "feed-1": "/reels/reel1.mp4",
-                        "feed-2": "/reels/reel2.mp4",
-                        "feed-3": "/reels/reel4.mp4",
-                        "feed-4": "/reels/reel3.mp4",
-                        "feed-5": "/reels/reel1.mp4",
-                        "feed-6": "/reels/reel2.mp4",
-                      };
-                      const mediaUrl = post.mediaUrl || fallbackVideos[post.id] || "/reels/reel1.mp4";
-                      const isVideo = post.mediaType === "video" || mediaUrl.endsWith(".mp4");
-
-                      return isVideo ? (
-                        <FeedVideoPlayer
-                          src={mediaUrl}
-                          poster="https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=1000&auto=format&fit=crop&q=80"
-                          title={post.content.slice(0, 40)}
-                          aspectRatio="16 / 9"
-                          maxHeight="260px"
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "220px",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            background: "#08090C",
-                            position: "relative",
-                          }}
-                        >
-                          <img
-                            src={mediaUrl}
-                            alt={post.author.name}
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                            onError={(e) => {
-                              e.currentTarget.src = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1000&auto=format&fit=crop&q=80";
-                            }}
-                          />
-                        </div>
-                      );
-                    })()}
-
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "6px" }}>
-                      {/* Left: Like, Comment, and Share Buttons */}
-                      <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-                        {/* Like Button */}
-                        <button
-                          type="button"
-                          id={`post-like-btn-${post.id}`}
-                          onClick={() => handleToggleLike(post.id)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: post.isLiked ? "#f43f5e" : "var(--text-muted)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px",
-                            fontSize: "0.75rem",
-                            fontWeight: post.isLiked ? 700 : 500,
-                            cursor: "pointer",
-                            padding: 0,
-                            transition: "transform 0.15s ease",
-                          }}
-                        >
-                          <Heart size={16} fill={post.isLiked ? "#f43f5e" : "none"} strokeWidth={post.isLiked ? 2.5 : 2} />
-                          <span>{post.likes}</span>
-                        </button>
-
-                        {/* Instagram Comment Button */}
-                        <button
-                          type="button"
-                          id={`post-comment-btn-${post.id}`}
-                          onClick={() =>
-                            handleOpenFeedComments({
-                              id: post.id,
-                              author: post.author,
-                              content: post.content,
-                              commentsCount: feedPostCommentCounts[post.id] || post.commentsCount,
-                            })
-                          }
-                          style={{
-                            background: "none",
-                            border: "none",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px",
-                            fontSize: "0.75rem",
-                            color: "var(--text-muted)",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
-                        >
-                          <MessageSquare size={15} />
-                          <span>{feedPostCommentCounts[post.id] || post.commentsCount}</span>
-                        </button>
-
-                      {/* Share Button (beside Like & Comment) */}
-                      <button
-                        type="button"
-                        id={`post-share-btn-${post.id}`}
-                        onClick={() => handleSharePost(post)}
-                        title="Share post"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          fontSize: "0.75rem",
-                          color: "var(--text-muted)",
-                          cursor: "pointer",
-                          padding: 0,
-                          transition: "color 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#FF9800")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-                      >
-                        <Share2 size={15} />
-                        <span>{post.shares || 18}</span>
-                      </button>
-                    </div>
-
-                    {/* Right: Embedded CTA & Instagram-style Save Button */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {post.actionButton && (
-                        <button
-                          onClick={() => {
-                            if (post.actionButton?.type === "apply") {
-                              setActiveAudition(OPEN_CASTINGS[0]);
-                            } else if (post.actionButton?.type === "view_reel") {
-                              setActiveShowreel(FEATURED_TALENT[1]);
-                            } else if (post.actionButton?.type === "request_pitch") {
-                              setActivePitch(PITCH_DECKS[0]);
-                            }
-                          }}
-                          className="btn-primary"
-                          style={{ padding: "4px 10px", fontSize: "0.72rem" }}
-                        >
-                          {post.actionButton.label}
-                        </button>
-                      )}
-
-                      {/* Instagram Save / Bookmark Button */}
-                      <button
-                        type="button"
-                        id={`post-save-btn-${post.id}`}
-                        onClick={() => handleToggleSavePost(post.id)}
-                        title={savedPostIds.includes(post.id) ? "Saved to collection" : "Save post"}
-                        style={{
-                          background: savedPostIds.includes(post.id) ? "rgba(255, 152, 0, 0.18)" : "transparent",
-                          border: savedPostIds.includes(post.id) ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
-                          borderRadius: "8px",
-                          padding: "4px 6px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          transition: "all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
-                        }}
-                      >
-                        <Bookmark
-                          size={16}
-                          color={savedPostIds.includes(post.id) ? "#FF9800" : "var(--text-muted)"}
-                          fill={savedPostIds.includes(post.id) ? "#FF9800" : "none"}
-                          strokeWidth={savedPostIds.includes(post.id) ? 2.5 : 2}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-                {/* Reels Carousel Strip right after Post 0 */}
-                {postIndex === 0 && (
-                  <div
-                    style={{
-                      background: "linear-gradient(180deg, #131722 0%, #0c0f17 100%)",
-                      border: "1px solid rgba(255, 152, 0, 0.35)",
-                      borderRadius: "14px",
-                      padding: "12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                      boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <div
-                          style={{
-                            width: "28px",
-                            height: "28px",
-                            borderRadius: "8px",
-                            background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#08090C",
-                          }}
-                        >
-                          <Film size={15} />
-                        </div>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#fff" }}>
-                              Cinema Reels
-                            </span>
-                            <span
-                              style={{
-                                background: "rgba(255, 152, 0, 0.2)",
-                                color: "#FF9800",
-                                fontSize: "0.62rem",
-                                fontWeight: 700,
-                                padding: "1px 6px",
-                                borderRadius: "9999px",
-                              }}
-                            >
-                              🔥 Hot
-                            </span>
-                          </div>
-                          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                            Showreels, auditions & camera tests
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveReelIndex(0);
-                          setActiveTab("reels");
-                        }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#FF9800",
-                          fontSize: "0.74rem",
-                          fontWeight: 700,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "2px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <span>Watch All</span>
-                        <ChevronRight size={13} />
-                      </button>
-                    </div>
-
+              {/* Feed Cards */}
+              {feedPosts.map((post, postIndex) => (
+                <React.Fragment key={post.id}>
+                  {hiddenPostIds.includes(post.id) ? (
                     <div
                       style={{
+                        background: "#0c1017",
+                        border: "1px dashed rgba(255, 255, 255, 0.15)",
+                        borderRadius: "14px",
+                        padding: "12px 16px",
                         display: "flex",
-                        gap: "10px",
-                        overflowX: "auto",
-                        paddingBottom: "4px",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        color: "var(--text-muted)",
                       }}
-                      className="no-scrollbar"
                     >
-                      {reelsList.map((reel, rIdx) => (
-                        <div
-                          key={`carousel-reel-${reel.id}`}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <EyeOff size={16} color="var(--text-muted)" />
+                        <span style={{ fontSize: "0.78rem" }}>
+                          Post hidden • You'll see fewer posts like this.
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUndoHidePost(post.id)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#FF9800",
+                          fontWeight: 700,
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                        }}
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        background: "#0f131c",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "14px",
+                        padding: "14px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <img
+                            src={post.author.avatar}
+                            alt="Author"
+                            style={{ width: "34px", height: "34px", borderRadius: "50%", objectFit: "cover" }}
+                          />
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
+                                {post.author.name}
+                              </span>
+                              {post.author.verified && <CheckCircle2 size={12} color="var(--accent-gold)" />}
+                            </div>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                              {post.author.craft} • {post.timestamp}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          {/* Instagram-style Follow / Following Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFollow(post.author.name)}
+                            style={{
+                              background: followedAuthors.includes(post.author.name)
+                                ? "rgba(255, 255, 255, 0.08)"
+                                : "#FF9800",
+                              color: followedAuthors.includes(post.author.name) ? "#E2E8F0" : "#08090C",
+                              border: followedAuthors.includes(post.author.name)
+                                ? "1px solid rgba(255, 255, 255, 0.2)"
+                                : "none",
+                              padding: "4px 12px",
+                              borderRadius: "8px",
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              transition: "all 0.18s ease",
+                              boxShadow: followedAuthors.includes(post.author.name)
+                                ? "none"
+                                : "0 2px 6px rgba(255, 152, 0, 0.3)",
+                            }}
+                          >
+                            {followedAuthors.includes(post.author.name) ? (
+                              <>
+                                <Check size={12} strokeWidth={2.8} />
+                                <span>Following</span>
+                              </>
+                            ) : (
+                              <span>Follow</span>
+                            )}
+                          </button>
+
+                          {/* 3-Dots Menu with Interested, Not Interested, Report */}
+                          <PostActionMenu
+                            itemId={post.id}
+                            isOpen={openMenuPostId === post.id}
+                            onToggle={() => setOpenMenuPostId(openMenuPostId === post.id ? null : post.id)}
+                            onInterested={handlePostInterested}
+                            onNotInterested={handlePostNotInterested}
+                            onReport={handlePostReport}
+                          />
+                        </div>
+                      </div>
+
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                        {post.content}
+                      </p>
+
+                      {/* Media Preview: Video Player (with Background Autoplay) or Photo */}
+                      {(() => {
+                        const fallbackVideos: Record<string, string> = {
+                          "feed-1": "/reels/reel1.mp4",
+                          "feed-2": "/reels/reel2.mp4",
+                          "feed-3": "/reels/reel4.mp4",
+                          "feed-4": "/reels/reel3.mp4",
+                          "feed-5": "/reels/reel1.mp4",
+                          "feed-6": "/reels/reel2.mp4",
+                        };
+                        const mediaUrl = post.mediaUrl || fallbackVideos[post.id] || "/reels/reel1.mp4";
+                        const isVideo = post.mediaType === "video" || mediaUrl.endsWith(".mp4");
+
+                        return isVideo ? (
+                          <FeedVideoPlayer
+                            src={mediaUrl}
+                            poster="https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=1000&auto=format&fit=crop&q=80"
+                            title={post.content.slice(0, 40)}
+                            aspectRatio="16 / 9"
+                            maxHeight="260px"
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "220px",
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              border: "1px solid rgba(255, 255, 255, 0.08)",
+                              background: "#08090C",
+                              position: "relative",
+                            }}
+                          >
+                            <img
+                              src={mediaUrl}
+                              alt={post.author.name}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                              onError={(e) => {
+                                e.currentTarget.src = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1000&auto=format&fit=crop&q=80";
+                              }}
+                            />
+                          </div>
+                        );
+                      })()}
+
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "6px" }}>
+                        {/* Left: Like, Comment, and Share Buttons */}
+                        <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+                          {/* Like Button */}
+                          <button
+                            type="button"
+                            id={`post-like-btn-${post.id}`}
+                            onClick={() => handleToggleLike(post.id)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: post.isLiked ? "#f43f5e" : "var(--text-muted)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              fontSize: "0.75rem",
+                              fontWeight: post.isLiked ? 700 : 500,
+                              cursor: "pointer",
+                              padding: 0,
+                              transition: "transform 0.15s ease",
+                            }}
+                          >
+                            <Heart size={16} fill={post.isLiked ? "#f43f5e" : "none"} strokeWidth={post.isLiked ? 2.5 : 2} />
+                            <span>{post.likes}</span>
+                          </button>
+
+                          {/* Instagram Comment Button */}
+                          <button
+                            type="button"
+                            id={`post-comment-btn-${post.id}`}
+                            onClick={() =>
+                              handleOpenFeedComments({
+                                id: post.id,
+                                author: post.author,
+                                content: post.content,
+                                commentsCount: feedPostCommentCounts[post.id] || post.commentsCount,
+                              })
+                            }
+                            style={{
+                              background: "none",
+                              border: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              fontSize: "0.75rem",
+                              color: "var(--text-muted)",
+                              cursor: "pointer",
+                              padding: 0,
+                            }}
+                          >
+                            <MessageSquare size={15} />
+                            <span>{feedPostCommentCounts[post.id] || post.commentsCount}</span>
+                          </button>
+
+                          {/* Share Button (beside Like & Comment) */}
+                          <button
+                            type="button"
+                            id={`post-share-btn-${post.id}`}
+                            onClick={() => handleSharePost(post)}
+                            title="Share post"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              fontSize: "0.75rem",
+                              color: "var(--text-muted)",
+                              cursor: "pointer",
+                              padding: 0,
+                              transition: "color 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#FF9800")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+                          >
+                            <Share2 size={15} />
+                            <span>{post.shares || 18}</span>
+                          </button>
+                        </div>
+
+                        {/* Right: Embedded CTA & Instagram-style Save Button */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          {post.actionButton && (
+                            <button
+                              onClick={() => {
+                                if (post.actionButton?.type === "apply") {
+                                  setActiveAudition(OPEN_CASTINGS[0]);
+                                } else if (post.actionButton?.type === "view_reel") {
+                                  setActiveShowreel(FEATURED_TALENT[1]);
+                                } else if (post.actionButton?.type === "request_pitch") {
+                                  setActivePitch(PITCH_DECKS[0]);
+                                }
+                              }}
+                              className="btn-primary"
+                              style={{ padding: "4px 10px", fontSize: "0.72rem" }}
+                            >
+                              {post.actionButton.label}
+                            </button>
+                          )}
+
+                          {/* Instagram Save / Bookmark Button */}
+                          <button
+                            type="button"
+                            id={`post-save-btn-${post.id}`}
+                            onClick={() => handleToggleSavePost(post.id)}
+                            title={savedPostIds.includes(post.id) ? "Saved to collection" : "Save post"}
+                            style={{
+                              background: savedPostIds.includes(post.id) ? "rgba(255, 152, 0, 0.18)" : "transparent",
+                              border: savedPostIds.includes(post.id) ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
+                              borderRadius: "8px",
+                              padding: "4px 6px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              transition: "all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+                            }}
+                          >
+                            <Bookmark
+                              size={16}
+                              color={savedPostIds.includes(post.id) ? "#FF9800" : "var(--text-muted)"}
+                              fill={savedPostIds.includes(post.id) ? "#FF9800" : "none"}
+                              strokeWidth={savedPostIds.includes(post.id) ? 2.5 : 2}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reels Carousel Strip right after Post 0 */}
+                  {postIndex === 0 && (
+                    <div
+                      style={{
+                        background: "linear-gradient(180deg, #131722 0%, #0c0f17 100%)",
+                        border: "1px solid rgba(255, 152, 0, 0.35)",
+                        borderRadius: "14px",
+                        padding: "12px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                        boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div
+                            style={{
+                              width: "28px",
+                              height: "28px",
+                              borderRadius: "8px",
+                              background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#08090C",
+                            }}
+                          >
+                            <Film size={15} />
+                          </div>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#fff" }}>
+                                Cinema Reels
+                              </span>
+                              <span
+                                style={{
+                                  background: "rgba(255, 152, 0, 0.2)",
+                                  color: "#FF9800",
+                                  fontSize: "0.62rem",
+                                  fontWeight: 700,
+                                  padding: "1px 6px",
+                                  borderRadius: "9999px",
+                                }}
+                              >
+                                🔥 Hot
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
+                              Showreels, auditions & camera tests
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
                           onClick={() => {
-                            setActiveReelIndex(rIdx);
+                            setActiveReelIndex(0);
                             setActiveTab("reels");
                           }}
                           style={{
-                            minWidth: "115px",
-                            width: "115px",
-                            height: "185px",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            position: "relative",
+                            background: "none",
+                            border: "none",
+                            color: "#FF9800",
+                            fontSize: "0.74rem",
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2px",
                             cursor: "pointer",
-                            flexShrink: 0,
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                            background: "#08090C",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                           }}
                         >
-                          <video
-                            src={reel.videoUrl}
-                            poster={reel.thumbnailUrl}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                          />
-                          <div
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              background: "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)",
-                            }}
-                          />
+                          <span>Watch All</span>
+                          <ChevronRight size={13} />
+                        </button>
+                      </div>
 
-                          <div style={{ position: "absolute", top: "6px", left: "6px" }}>
-                            <span
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          overflowX: "auto",
+                          paddingBottom: "4px",
+                        }}
+                        className="no-scrollbar"
+                      >
+                        {reelsList.map((reel, rIdx) => (
+                          <div
+                            key={`carousel-reel-${reel.id}`}
+                            onClick={() => {
+                              setActiveReelIndex(rIdx);
+                              setActiveTab("reels");
+                            }}
+                            style={{
+                              minWidth: "115px",
+                              width: "115px",
+                              height: "185px",
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              position: "relative",
+                              cursor: "pointer",
+                              flexShrink: 0,
+                              border: "1px solid rgba(255, 255, 255, 0.1)",
+                              background: "#08090C",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                            }}
+                          >
+                            <video
+                              src={reel.videoUrl}
+                              poster={reel.thumbnailUrl}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            />
+                            <div
                               style={{
-                                background: "rgba(0,0,0,0.7)",
-                                backdropFilter: "blur(4px)",
+                                position: "absolute",
+                                inset: 0,
+                                background: "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)",
+                              }}
+                            />
+
+                            <div style={{ position: "absolute", top: "6px", left: "6px" }}>
+                              <span
+                                style={{
+                                  background: "rgba(0,0,0,0.7)",
+                                  backdropFilter: "blur(4px)",
+                                  color: "#FF9800",
+                                  fontSize: "0.58rem",
+                                  fontWeight: 700,
+                                  padding: "2px 5px",
+                                  borderRadius: "4px",
+                                  textTransform: "capitalize",
+                                }}
+                              >
+                                {reel.category}
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                                background: "rgba(0,0,0,0.55)",
+                                border: "1px solid rgba(255, 152, 0, 0.6)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                                 color: "#FF9800",
-                                fontSize: "0.58rem",
-                                fontWeight: 700,
-                                padding: "2px 5px",
-                                borderRadius: "4px",
-                                textTransform: "capitalize",
                               }}
                             >
-                              {reel.category}
-                            </span>
-                          </div>
+                              <Play size={14} fill="#FF9800" style={{ marginLeft: "2px" }} />
+                            </div>
 
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              width: "32px",
-                              height: "32px",
-                              borderRadius: "50%",
-                              background: "rgba(0,0,0,0.55)",
-                              border: "1px solid rgba(255, 152, 0, 0.6)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#FF9800",
-                            }}
-                          >
-                            <Play size={14} fill="#FF9800" style={{ marginLeft: "2px" }} />
-                          </div>
-
-                          <div
-                            style={{
-                              position: "absolute",
-                              bottom: "6px",
-                              left: "6px",
-                              right: "6px",
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "2px",
-                            }}
-                          >
-                            <span
+                            <div
                               style={{
-                                fontSize: "0.68rem",
-                                fontWeight: 700,
-                                color: "#fff",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
+                                position: "absolute",
+                                bottom: "6px",
+                                left: "6px",
+                                right: "6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "2px",
                               }}
                             >
-                              {reel.creator.name}
+                              <span
+                                style={{
+                                  fontSize: "0.68rem",
+                                  fontWeight: 700,
+                                  color: "#fff",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
+                                {reel.creator.name}
+                              </span>
+                              <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#FF9800", fontSize: "0.6rem" }}>
+                                <Heart size={9} fill="#FF9800" />
+                                <span>{reel.likes}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* In-Feed Spotlight Reel 1 right after Post 1 */}
+                  {postIndex === 1 && reelsList[0] && (() => {
+                    const reel = reelsList[0];
+                    const isSaved = savedReelIds.includes(reel.id);
+                    const isFollowing = followedAuthors.includes(reel.creator.name);
+                    const isHidden = hiddenPostIds.includes(reel.id);
+
+                    if (isHidden) {
+                      return (
+                        <div
+                          key={`infeed-reel-${reel.id}`}
+                          style={{
+                            background: "#0c1017",
+                            border: "1px dashed rgba(255, 255, 255, 0.15)",
+                            borderRadius: "14px",
+                            padding: "12px 16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <EyeOff size={16} color="var(--text-muted)" />
+                            <span style={{ fontSize: "0.78rem" }}>
+                              Reel hidden • You'll see fewer reels like this.
                             </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#FF9800", fontSize: "0.6rem" }}>
-                              <Heart size={9} fill="#FF9800" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleUndoHidePost(reel.id)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#FF9800",
+                              fontWeight: 700,
+                              fontSize: "0.75rem",
+                              cursor: "pointer",
+                              padding: "4px 8px",
+                            }}
+                          >
+                            Undo
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={`infeed-reel-${reel.id}`}
+                        style={{
+                          background: "linear-gradient(180deg, #141724 0%, #0d101a 100%)",
+                          border: "1px solid rgba(255, 152, 0, 0.4)",
+                          borderRadius: "14px",
+                          padding: "14px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                          boxShadow: "0 4px 20px rgba(255, 152, 0, 0.12)",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <img
+                              src={reel.creator.avatar}
+                              alt={reel.creator.name}
+                              style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF9800" }}
+                            />
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
+                                  {reel.creator.name}
+                                </span>
+                                {reel.creator.verified && <CheckCircle2 size={12} color="#FF9800" />}
+                                <span
+                                  style={{
+                                    background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
+                                    color: "#08090C",
+                                    fontSize: "0.6rem",
+                                    fontWeight: 800,
+                                    padding: "1px 6px",
+                                    borderRadius: "9999px",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.03em",
+                                  }}
+                                >
+                                  Reel
+                                </span>
+                              </div>
+                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                                {reel.creator.craft} • Audition Monologue
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleFollow(reel.creator.name)}
+                              style={{
+                                background: isFollowing ? "rgba(255, 255, 255, 0.08)" : "#FF9800",
+                                color: isFollowing ? "#E2E8F0" : "#08090C",
+                                border: isFollowing ? "1px solid rgba(255, 255, 255, 0.2)" : "none",
+                                padding: "4px 12px",
+                                borderRadius: "8px",
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {isFollowing ? (
+                                <>
+                                  <Check size={12} strokeWidth={2.8} />
+                                  <span>Following</span>
+                                </>
+                              ) : (
+                                <span>Follow</span>
+                              )}
+                            </button>
+
+                            {/* 3-Dots Menu with Interested, Not Interested, Report */}
+                            <PostActionMenu
+                              itemId={reel.id}
+                              isOpen={openMenuPostId === reel.id}
+                              onToggle={() => setOpenMenuPostId(openMenuPostId === reel.id ? null : reel.id)}
+                              onInterested={handlePostInterested}
+                              onNotInterested={handlePostNotInterested}
+                              onReport={handlePostReport}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#fff", margin: "0 0 3px 0" }}>
+                            {reel.title}
+                          </p>
+                          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.35 }}>
+                            {reel.description}
+                          </p>
+                        </div>
+
+                        {/* Cinematic Video Player with Scroll Autoplay */}
+                        <FeedVideoPlayer
+                          src={reel.videoUrl}
+                          poster={reel.thumbnailUrl}
+                          title={reel.title}
+                          soundTrack={reel.soundTrack}
+                          aspectRatio="16 / 9"
+                          maxHeight="260px"
+                          onOpenFullscreen={() => {
+                            setActiveReelIndex(0);
+                            setActiveTab("reels");
+                          }}
+                        />
+
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "4px" }}>
+                          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleLikeReel(reel.id)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: reel.isLiked ? "#f43f5e" : "var(--text-muted)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                fontWeight: reel.isLiked ? 700 : 500,
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <Heart size={16} fill={reel.isLiked ? "#f43f5e" : "none"} strokeWidth={reel.isLiked ? 2.5 : 2} />
                               <span>{reel.likes}</span>
-                            </div>
+                            </button>
+
+                            {/* Instagram Comment Button */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleOpenFeedComments({
+                                  id: reel.id,
+                                  author: reel.creator,
+                                  content: `${reel.title} — ${reel.description}`,
+                                  commentsCount: feedPostCommentCounts[reel.id] || reel.commentsCount,
+                                })
+                              }
+                              style={{
+                                background: "none",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <MessageSquare size={15} />
+                              <span>{feedPostCommentCounts[reel.id] || reel.commentsCount}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleShareReel(reel)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <Share2 size={15} />
+                              <span>{reel.shares}</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveReelIndex(0);
+                                setActiveTab("reels");
+                              }}
+                              style={{
+                                background: "linear-gradient(135deg, #FF9800 0%, #FF8500 100%)",
+                                color: "#08090C",
+                                border: "none",
+                                padding: "4px 10px",
+                                borderRadius: "8px",
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <Play size={11} fill="#08090C" />
+                              <span>Play Reel</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSaveReel(reel.id)}
+                              style={{
+                                background: isSaved ? "rgba(255, 152, 0, 0.18)" : "transparent",
+                                border: isSaved ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
+                                borderRadius: "8px",
+                                padding: "4px 6px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <Bookmark
+                                size={16}
+                                color={isSaved ? "#FF9800" : "var(--text-muted)"}
+                                fill={isSaved ? "#FF9800" : "none"}
+                                strokeWidth={isSaved ? 2.5 : 2}
+                              />
+                            </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                    );
+                  })()}
 
-                {/* In-Feed Spotlight Reel 1 right after Post 1 */}
-                {postIndex === 1 && reelsList[0] && (() => {
-                  const reel = reelsList[0];
-                  const isSaved = savedReelIds.includes(reel.id);
-                  const isFollowing = followedAuthors.includes(reel.creator.name);
-                  const isHidden = hiddenPostIds.includes(reel.id);
+                  {/* In-Feed Spotlight Reel 2 right after Post 2 */}
+                  {postIndex === 2 && reelsList[2] && (() => {
+                    const reel = reelsList[2];
+                    const isSaved = savedReelIds.includes(reel.id);
+                    const isFollowing = followedAuthors.includes(reel.creator.name);
+                    const isHidden = hiddenPostIds.includes(reel.id);
 
-                  if (isHidden) {
+                    if (isHidden) {
+                      return (
+                        <div
+                          key={`infeed-reel-${reel.id}`}
+                          style={{
+                            background: "#0c1017",
+                            border: "1px dashed rgba(255, 255, 255, 0.15)",
+                            borderRadius: "14px",
+                            padding: "12px 16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <EyeOff size={16} color="var(--text-muted)" />
+                            <span style={{ fontSize: "0.78rem" }}>
+                              Reel hidden • You'll see fewer reels like this.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleUndoHidePost(reel.id)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#FF9800",
+                              fontWeight: 700,
+                              fontSize: "0.75rem",
+                              cursor: "pointer",
+                              padding: "4px 8px",
+                            }}
+                          >
+                            Undo
+                          </button>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div
                         key={`infeed-reel-${reel.id}`}
                         style={{
-                          background: "#0c1017",
-                          border: "1px dashed rgba(255, 255, 255, 0.15)",
+                          background: "linear-gradient(180deg, #141724 0%, #0d101a 100%)",
+                          border: "1px solid rgba(255, 152, 0, 0.4)",
                           borderRadius: "14px",
-                          padding: "12px 16px",
+                          padding: "14px",
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          color: "var(--text-muted)",
+                          flexDirection: "column",
+                          gap: "10px",
+                          boxShadow: "0 4px 20px rgba(255, 152, 0, 0.12)",
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <EyeOff size={16} color="var(--text-muted)" />
-                          <span style={{ fontSize: "0.78rem" }}>
-                            Reel hidden • You'll see fewer reels like this.
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleUndoHidePost(reel.id)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#FF9800",
-                            fontWeight: 700,
-                            fontSize: "0.75rem",
-                            cursor: "pointer",
-                            padding: "4px 8px",
-                          }}
-                        >
-                          Undo
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div
-                      key={`infeed-reel-${reel.id}`}
-                      style={{
-                        background: "linear-gradient(180deg, #141724 0%, #0d101a 100%)",
-                        border: "1px solid rgba(255, 152, 0, 0.4)",
-                        borderRadius: "14px",
-                        padding: "14px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                        boxShadow: "0 4px 20px rgba(255, 152, 0, 0.12)",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <img
-                            src={reel.creator.avatar}
-                            alt={reel.creator.name}
-                            style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF9800" }}
-                          />
-                          <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                                {reel.creator.name}
-                              </span>
-                              {reel.creator.verified && <CheckCircle2 size={12} color="#FF9800" />}
-                              <span
-                                style={{
-                                  background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
-                                  color: "#08090C",
-                                  fontSize: "0.6rem",
-                                  fontWeight: 800,
-                                  padding: "1px 6px",
-                                  borderRadius: "9999px",
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.03em",
-                                }}
-                              >
-                                Reel
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <img
+                              src={reel.creator.avatar}
+                              alt={reel.creator.name}
+                              style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF9800" }}
+                            />
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
+                                  {reel.creator.name}
+                                </span>
+                                {reel.creator.verified && <CheckCircle2 size={12} color="#FF9800" />}
+                                <span
+                                  style={{
+                                    background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
+                                    color: "#08090C",
+                                    fontSize: "0.6rem",
+                                    fontWeight: 800,
+                                    padding: "1px 6px",
+                                    borderRadius: "9999px",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.03em",
+                                  }}
+                                >
+                                  Stunts
+                                </span>
+                              </div>
+                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                                {reel.creator.craft} • Action Choreography
                               </span>
                             </div>
-                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                              {reel.creator.craft} • Audition Monologue
-                            </span>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleFollow(reel.creator.name)}
+                              style={{
+                                background: isFollowing ? "rgba(255, 255, 255, 0.08)" : "#FF9800",
+                                color: isFollowing ? "#E2E8F0" : "#08090C",
+                                border: isFollowing ? "1px solid rgba(255, 255, 255, 0.2)" : "none",
+                                padding: "4px 12px",
+                                borderRadius: "8px",
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {isFollowing ? (
+                                <>
+                                  <Check size={12} strokeWidth={2.8} />
+                                  <span>Following</span>
+                                </>
+                              ) : (
+                                <span>Follow</span>
+                              )}
+                            </button>
+
+                            {/* 3-Dots Menu with Interested, Not Interested, Report */}
+                            <PostActionMenu
+                              itemId={reel.id}
+                              isOpen={openMenuPostId === reel.id}
+                              onToggle={() => setOpenMenuPostId(openMenuPostId === reel.id ? null : reel.id)}
+                              onInterested={handlePostInterested}
+                              onNotInterested={handlePostNotInterested}
+                              onReport={handlePostReport}
+                            />
                           </div>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleFollow(reel.creator.name)}
-                            style={{
-                              background: isFollowing ? "rgba(255, 255, 255, 0.08)" : "#FF9800",
-                              color: isFollowing ? "#E2E8F0" : "#08090C",
-                              border: isFollowing ? "1px solid rgba(255, 255, 255, 0.2)" : "none",
-                              padding: "4px 12px",
-                              borderRadius: "8px",
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            {isFollowing ? (
-                              <>
-                                <Check size={12} strokeWidth={2.8} />
-                                <span>Following</span>
-                              </>
-                            ) : (
-                              <span>Follow</span>
-                            )}
-                          </button>
-
-                          {/* 3-Dots Menu with Interested, Not Interested, Report */}
-                          <PostActionMenu
-                            itemId={reel.id}
-                            isOpen={openMenuPostId === reel.id}
-                            onToggle={() => setOpenMenuPostId(openMenuPostId === reel.id ? null : reel.id)}
-                            onInterested={handlePostInterested}
-                            onNotInterested={handlePostNotInterested}
-                            onReport={handlePostReport}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#fff", margin: "0 0 3px 0" }}>
-                          {reel.title}
-                        </p>
-                        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.35 }}>
-                          {reel.description}
-                        </p>
-                      </div>
-
-                      {/* Cinematic Video Player with Scroll Autoplay */}
-                      <FeedVideoPlayer
-                        src={reel.videoUrl}
-                        poster={reel.thumbnailUrl}
-                        title={reel.title}
-                        soundTrack={reel.soundTrack}
-                        aspectRatio="16 / 9"
-                        maxHeight="260px"
-                        onOpenFullscreen={() => {
-                          setActiveReelIndex(0);
-                          setActiveTab("reels");
-                        }}
-                      />
-
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "4px" }}>
-                        <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleLikeReel(reel.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: reel.isLiked ? "#f43f5e" : "var(--text-muted)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              fontWeight: reel.isLiked ? 700 : 500,
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <Heart size={16} fill={reel.isLiked ? "#f43f5e" : "none"} strokeWidth={reel.isLiked ? 2.5 : 2} />
-                            <span>{reel.likes}</span>
-                          </button>
-
-                          {/* Instagram Comment Button */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleOpenFeedComments({
-                                id: reel.id,
-                                author: reel.creator,
-                                content: `${reel.title} — ${reel.description}`,
-                                commentsCount: feedPostCommentCounts[reel.id] || reel.commentsCount,
-                              })
-                            }
-                            style={{
-                              background: "none",
-                              border: "none",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              color: "var(--text-muted)",
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <MessageSquare size={15} />
-                            <span>{feedPostCommentCounts[reel.id] || reel.commentsCount}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleShareReel(reel)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              color: "var(--text-muted)",
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <Share2 size={15} />
-                            <span>{reel.shares}</span>
-                          </button>
+                        <div>
+                          <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#fff", margin: "0 0 3px 0" }}>
+                            {reel.title}
+                          </p>
+                          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.35 }}>
+                            {reel.description}
+                          </p>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveReelIndex(0);
-                              setActiveTab("reels");
-                            }}
-                            style={{
-                              background: "linear-gradient(135deg, #FF9800 0%, #FF8500 100%)",
-                              color: "#08090C",
-                              border: "none",
-                              padding: "4px 10px",
-                              borderRadius: "8px",
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <Play size={11} fill="#08090C" />
-                            <span>Play Reel</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSaveReel(reel.id)}
-                            style={{
-                              background: isSaved ? "rgba(255, 152, 0, 0.18)" : "transparent",
-                              border: isSaved ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
-                              borderRadius: "8px",
-                              padding: "4px 6px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Bookmark
-                              size={16}
-                              color={isSaved ? "#FF9800" : "var(--text-muted)"}
-                              fill={isSaved ? "#FF9800" : "none"}
-                              strokeWidth={isSaved ? 2.5 : 2}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* In-Feed Spotlight Reel 2 right after Post 2 */}
-                {postIndex === 2 && reelsList[2] && (() => {
-                  const reel = reelsList[2];
-                  const isSaved = savedReelIds.includes(reel.id);
-                  const isFollowing = followedAuthors.includes(reel.creator.name);
-                  const isHidden = hiddenPostIds.includes(reel.id);
-
-                  if (isHidden) {
-                    return (
-                      <div
-                        key={`infeed-reel-${reel.id}`}
-                        style={{
-                          background: "#0c1017",
-                          border: "1px dashed rgba(255, 255, 255, 0.15)",
-                          borderRadius: "14px",
-                          padding: "12px 16px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <EyeOff size={16} color="var(--text-muted)" />
-                          <span style={{ fontSize: "0.78rem" }}>
-                            Reel hidden • You'll see fewer reels like this.
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleUndoHidePost(reel.id)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#FF9800",
-                            fontWeight: 700,
-                            fontSize: "0.75rem",
-                            cursor: "pointer",
-                            padding: "4px 8px",
+                        {/* Cinematic Video Player with Scroll Autoplay */}
+                        <FeedVideoPlayer
+                          src={reel.videoUrl}
+                          poster={reel.thumbnailUrl}
+                          title={reel.title}
+                          soundTrack={reel.soundTrack}
+                          aspectRatio="16 / 9"
+                          maxHeight="260px"
+                          onOpenFullscreen={() => {
+                            setActiveReelIndex(2);
+                            setActiveTab("reels");
                           }}
-                        >
-                          Undo
-                        </button>
-                      </div>
-                    );
-                  }
+                        />
 
-                  return (
-                    <div
-                      key={`infeed-reel-${reel.id}`}
-                      style={{
-                        background: "linear-gradient(180deg, #141724 0%, #0d101a 100%)",
-                        border: "1px solid rgba(255, 152, 0, 0.4)",
-                        borderRadius: "14px",
-                        padding: "14px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                        boxShadow: "0 4px 20px rgba(255, 152, 0, 0.12)",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <img
-                            src={reel.creator.avatar}
-                            alt={reel.creator.name}
-                            style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1.5px solid #FF9800" }}
-                          />
-                          <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                                {reel.creator.name}
-                              </span>
-                              {reel.creator.verified && <CheckCircle2 size={12} color="#FF9800" />}
-                              <span
-                                style={{
-                                  background: "linear-gradient(135deg, #FF9800 0%, #FF5722 100%)",
-                                  color: "#08090C",
-                                  fontSize: "0.6rem",
-                                  fontWeight: 800,
-                                  padding: "1px 6px",
-                                  borderRadius: "9999px",
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.03em",
-                                }}
-                              >
-                                Stunts
-                              </span>
-                            </div>
-                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                              {reel.creator.craft} • Action Choreography
-                            </span>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "4px" }}>
+                          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleLikeReel(reel.id)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: reel.isLiked ? "#f43f5e" : "var(--text-muted)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                fontWeight: reel.isLiked ? 700 : 500,
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <Heart size={16} fill={reel.isLiked ? "#f43f5e" : "none"} strokeWidth={reel.isLiked ? 2.5 : 2} />
+                              <span>{reel.likes}</span>
+                            </button>
+
+                            {/* Instagram Comment Button */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleOpenFeedComments({
+                                  id: reel.id,
+                                  author: reel.creator,
+                                  content: `${reel.title} — ${reel.description}`,
+                                  commentsCount: feedPostCommentCounts[reel.id] || reel.commentsCount,
+                                })
+                              }
+                              style={{
+                                background: "none",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <MessageSquare size={15} />
+                              <span>{feedPostCommentCounts[reel.id] || reel.commentsCount}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleShareReel(reel)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                fontSize: "0.75rem",
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <Share2 size={15} />
+                              <span>{reel.shares}</span>
+                            </button>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveReelIndex(2);
+                                setActiveTab("reels");
+                              }}
+                              style={{
+                                background: "linear-gradient(135deg, #FF9800 0%, #FF8500 100%)",
+                                color: "#08090C",
+                                border: "none",
+                                padding: "4px 10px",
+                                borderRadius: "8px",
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <Play size={11} fill="#08090C" />
+                              <span>Play Reel</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSaveReel(reel.id)}
+                              style={{
+                                background: isSaved ? "rgba(255, 152, 0, 0.18)" : "transparent",
+                                border: isSaved ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
+                                borderRadius: "8px",
+                                padding: "4px 6px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <Bookmark
+                                size={16}
+                                color={isSaved ? "#FF9800" : "var(--text-muted)"}
+                                fill={isSaved ? "#FF9800" : "none"}
+                                strokeWidth={isSaved ? 2.5 : 2}
+                              />
+                            </button>
                           </div>
                         </div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleFollow(reel.creator.name)}
-                            style={{
-                              background: isFollowing ? "rgba(255, 255, 255, 0.08)" : "#FF9800",
-                              color: isFollowing ? "#E2E8F0" : "#08090C",
-                              border: isFollowing ? "1px solid rgba(255, 255, 255, 0.2)" : "none",
-                              padding: "4px 12px",
-                              borderRadius: "8px",
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            {isFollowing ? (
-                              <>
-                                <Check size={12} strokeWidth={2.8} />
-                                <span>Following</span>
-                              </>
-                            ) : (
-                              <span>Follow</span>
-                            )}
-                          </button>
-
-                          {/* 3-Dots Menu with Interested, Not Interested, Report */}
-                          <PostActionMenu
-                            itemId={reel.id}
-                            isOpen={openMenuPostId === reel.id}
-                            onToggle={() => setOpenMenuPostId(openMenuPostId === reel.id ? null : reel.id)}
-                            onInterested={handlePostInterested}
-                            onNotInterested={handlePostNotInterested}
-                            onReport={handlePostReport}
-                          />
-                        </div>
                       </div>
-
-                      <div>
-                        <p style={{ fontSize: "0.84rem", fontWeight: 700, color: "#fff", margin: "0 0 3px 0" }}>
-                          {reel.title}
-                        </p>
-                        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.35 }}>
-                          {reel.description}
-                        </p>
-                      </div>
-
-                      {/* Cinematic Video Player with Scroll Autoplay */}
-                      <FeedVideoPlayer
-                        src={reel.videoUrl}
-                        poster={reel.thumbnailUrl}
-                        title={reel.title}
-                        soundTrack={reel.soundTrack}
-                        aspectRatio="16 / 9"
-                        maxHeight="260px"
-                        onOpenFullscreen={() => {
-                          setActiveReelIndex(2);
-                          setActiveTab("reels");
-                        }}
-                      />
-
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "4px" }}>
-                        <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleLikeReel(reel.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: reel.isLiked ? "#f43f5e" : "var(--text-muted)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              fontWeight: reel.isLiked ? 700 : 500,
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <Heart size={16} fill={reel.isLiked ? "#f43f5e" : "none"} strokeWidth={reel.isLiked ? 2.5 : 2} />
-                            <span>{reel.likes}</span>
-                          </button>
-
-                          {/* Instagram Comment Button */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleOpenFeedComments({
-                                id: reel.id,
-                                author: reel.creator,
-                                content: `${reel.title} — ${reel.description}`,
-                                commentsCount: feedPostCommentCounts[reel.id] || reel.commentsCount,
-                              })
-                            }
-                            style={{
-                              background: "none",
-                              border: "none",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              color: "var(--text-muted)",
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <MessageSquare size={15} />
-                            <span>{feedPostCommentCounts[reel.id] || reel.commentsCount}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleShareReel(reel)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              fontSize: "0.75rem",
-                              color: "var(--text-muted)",
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                          >
-                            <Share2 size={15} />
-                            <span>{reel.shares}</span>
-                          </button>
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveReelIndex(2);
-                              setActiveTab("reels");
-                            }}
-                            style={{
-                              background: "linear-gradient(135deg, #FF9800 0%, #FF8500 100%)",
-                              color: "#08090C",
-                              border: "none",
-                              padding: "4px 10px",
-                              borderRadius: "8px",
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <Play size={11} fill="#08090C" />
-                            <span>Play Reel</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSaveReel(reel.id)}
-                            style={{
-                              background: isSaved ? "rgba(255, 152, 0, 0.18)" : "transparent",
-                              border: isSaved ? "1px solid rgba(255, 152, 0, 0.45)" : "none",
-                              borderRadius: "8px",
-                              padding: "4px 6px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Bookmark
-                              size={16}
-                              color={isSaved ? "#FF9800" : "var(--text-muted)"}
-                              fill={isSaved ? "#FF9800" : "none"}
-                              strokeWidth={isSaved ? 2.5 : 2}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </React.Fragment>
-            ))}
+                    );
+                  })()}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         );
@@ -3370,8 +3371,8 @@ export default function MobileAppSimulatorPage() {
                         app.status === "applied"
                           ? "1px solid rgba(16, 185, 129, 0.35)"
                           : app.status === "saved"
-                          ? "1px solid rgba(56, 189, 248, 0.35)"
-                          : "1px solid rgba(244, 63, 94, 0.3)",
+                            ? "1px solid rgba(56, 189, 248, 0.35)"
+                            : "1px solid rgba(244, 63, 94, 0.3)",
                       borderRadius: "12px",
                       padding: "13px",
                       display: "flex",
@@ -3395,8 +3396,8 @@ export default function MobileAppSimulatorPage() {
                             app.status === "applied"
                               ? "rgba(16, 185, 129, 0.2)"
                               : app.status === "saved"
-                              ? "rgba(56, 189, 248, 0.2)"
-                              : "rgba(244, 63, 94, 0.2)",
+                                ? "rgba(56, 189, 248, 0.2)"
+                                : "rgba(244, 63, 94, 0.2)",
                           color:
                             app.status === "applied" ? "#34d399" : app.status === "saved" ? "#38BDF8" : "#FB7185",
                           padding: "2px 8px",
@@ -4864,13 +4865,13 @@ export default function MobileAppSimulatorPage() {
                         background: n.urgent
                           ? "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, #101420 100%)"
                           : n.read
-                          ? "rgba(16, 20, 32, 0.6)"
-                          : "#121622",
+                            ? "rgba(16, 20, 32, 0.6)"
+                            : "#121622",
                         border: n.urgent
                           ? "1px solid rgba(245, 158, 11, 0.45)"
                           : n.read
-                          ? "1px solid rgba(255, 255, 255, 0.06)"
-                          : "1px solid rgba(245, 158, 11, 0.25)",
+                            ? "1px solid rgba(255, 255, 255, 0.06)"
+                            : "1px solid rgba(245, 158, 11, 0.25)",
                         borderRadius: "14px",
                         display: "flex",
                         flexDirection: "column",
@@ -5133,10 +5134,10 @@ export default function MobileAppSimulatorPage() {
                           {selectedNotifDetail.category === "callsheets"
                             ? "OFFICIAL PRODUCTION CALL SHEET"
                             : selectedNotifDetail.category === "callbacks"
-                            ? "DIRECTOR AUDITION CALLBACK"
-                            : selectedNotifDetail.category === "matches"
-                            ? "AI SMART CASTING MATCH"
-                            : "CINEMA DISPATCH DETAILS"}
+                              ? "DIRECTOR AUDITION CALLBACK"
+                              : selectedNotifDetail.category === "matches"
+                                ? "AI SMART CASTING MATCH"
+                                : "CINEMA DISPATCH DETAILS"}
                         </span>
                         <span style={{ fontSize: "0.68rem", color: "#64748B" }}>&bull;</span>
                         <span style={{ fontSize: "0.68rem", color: "#F59E0B", fontWeight: 700 }}>
@@ -9684,8 +9685,8 @@ export default function MobileAppSimulatorPage() {
                         app.status === "applied"
                           ? "1px solid rgba(16, 185, 129, 0.35)"
                           : app.status === "saved"
-                          ? "1px solid rgba(56, 189, 248, 0.35)"
-                          : "1px solid rgba(244, 63, 94, 0.3)",
+                            ? "1px solid rgba(56, 189, 248, 0.35)"
+                            : "1px solid rgba(244, 63, 94, 0.3)",
                       borderRadius: "12px",
                       padding: "12px",
                       display: "flex",
@@ -9708,8 +9709,8 @@ export default function MobileAppSimulatorPage() {
                             app.status === "applied"
                               ? "rgba(16, 185, 129, 0.2)"
                               : app.status === "saved"
-                              ? "rgba(56, 189, 248, 0.2)"
-                              : "rgba(244, 63, 94, 0.2)",
+                                ? "rgba(56, 189, 248, 0.2)"
+                                : "rgba(244, 63, 94, 0.2)",
                           color:
                             app.status === "applied" ? "#34d399" : app.status === "saved" ? "#38BDF8" : "#FB7185",
                           padding: "2px 8px",
