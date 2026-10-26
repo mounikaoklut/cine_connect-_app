@@ -14,6 +14,12 @@ import {
   Clapperboard,
   CheckCheck,
   Film,
+  SlidersHorizontal,
+  Eye,
+  Calendar,
+  FileText,
+  X,
+  Check,
 } from "lucide-react";
 
 export default function NotificationsPage() {
@@ -25,12 +31,41 @@ export default function NotificationsPage() {
     triggerTestAlert,
   } = useNotifications();
 
-  const [activeFilter, setActiveFilter] = useState<"all" | "APPLICATION_STATUS" | "DIRECT_MESSAGE" | "unread">("all");
+  const [activeFilter, setActiveFilter] = useState<
+    "all" | "APPLICATION_STATUS" | "DIRECT_MESSAGE" | "unread" | "callbacks" | "reviews"
+  >("all");
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [alertPreferences, setAlertPreferences] = useState({
+    callbacks: true,
+    aiMatches: true,
+    showreelViews: true,
+    callSheets: true,
+    pitchRequests: true,
+    soundAlerts: true,
+  });
+  const [optionsSavedToast, setOptionsSavedToast] = useState(false);
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeFilter === "unread") return !n.is_read;
     if (activeFilter === "APPLICATION_STATUS") return n.notification_type === "APPLICATION_STATUS";
     if (activeFilter === "DIRECT_MESSAGE") return n.notification_type === "DIRECT_MESSAGE";
+    if (activeFilter === "callbacks") {
+      const status = n.metadata_json?.status;
+      return (
+        status === "Selected" ||
+        n.title.toLowerCase().includes("callback") ||
+        n.title.toLowerCase().includes("screen test") ||
+        n.title.toLowerCase().includes("selected")
+      );
+    }
+    if (activeFilter === "reviews") {
+      const status = n.metadata_json?.status;
+      return (
+        status === "Under Review" ||
+        n.title.toLowerCase().includes("review") ||
+        n.title.toLowerCase().includes("showreel")
+      );
+    }
     return true;
   });
 
@@ -92,6 +127,28 @@ export default function NotificationsPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button
+              id="web-notif-options-btn"
+              onClick={() => setShowOptionsModal(!showOptionsModal)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: showOptionsModal ? "rgba(245, 158, 11, 0.2)" : "rgba(255, 255, 255, 0.05)",
+                border: showOptionsModal ? "1px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.15)",
+                color: showOptionsModal ? "#FFB74D" : "#94A3B8",
+                padding: "8px 14px",
+                borderRadius: "8px",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <SlidersHorizontal size={15} color={showOptionsModal ? "#FF9800" : "#94A3B8"} />
+              Alert Options
+            </button>
+
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -116,6 +173,216 @@ export default function NotificationsPage() {
           </div>
         </div>
 
+        {/* Collapsible CineConnect Notification & Alert Options Panel */}
+        {showOptionsModal && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(20, 24, 36, 0.95) 0%, rgba(11, 14, 22, 0.98) 100%)",
+              border: "1px solid rgba(255, 152, 0, 0.35)",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              marginBottom: "24px",
+              boxShadow: "0 8px 30px rgba(0, 0, 0, 0.7)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    background: "rgba(255, 152, 0, 0.2)",
+                    border: "1px solid #FF9800",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <SlidersHorizontal size={16} color="#FF9800" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                    CineConnect Alert &amp; Dispatch Options
+                  </h3>
+                  <p style={{ margin: "2px 0 0", fontSize: "0.76rem", color: "#94A3B8" }}>
+                    Configure real-time push triggers for verified director callbacks, AI casting matches, and shoot schedules.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowOptionsModal(false)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "none",
+                  color: "#94A3B8",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", marginBottom: "18px" }}>
+              {[
+                {
+                  key: "callbacks" as const,
+                  label: "Director Screen Tests & Callbacks",
+                  desc: "Instant push & sound chime when directors invite you to callbacks.",
+                  icon: Clapperboard,
+                  color: "#F59E0B",
+                },
+                {
+                  key: "aiMatches" as const,
+                  label: "90%+ AI Smart Casting Matches",
+                  desc: "Daily alerts for open roles matching your physical profile and craft.",
+                  icon: Sparkles,
+                  color: "#38BDF8",
+                },
+                {
+                  key: "showreelViews" as const,
+                  label: "Casting Director Showreel Views",
+                  desc: "Real-time notice when verified studio executives watch your reels.",
+                  icon: Eye,
+                  color: "#10B981",
+                },
+                {
+                  key: "callSheets" as const,
+                  label: "Call Sheets & Shoot Schedules",
+                  desc: "Urgent call time and soundstage location alerts on active shoots.",
+                  icon: Calendar,
+                  color: "#F43F5E",
+                },
+                {
+                  key: "pitchRequests" as const,
+                  label: "Screenplay Option & NDA Requests",
+                  desc: "Notifications when production houses request scripts or NDAs.",
+                  icon: FileText,
+                  color: "#A855F7",
+                },
+                {
+                  key: "soundAlerts" as const,
+                  label: "Cinematic In-App Sound Alerts",
+                  desc: "Play audio chime when urgent studio notices are delivered.",
+                  icon: Bell,
+                  color: "#FF9800",
+                },
+              ].map((opt) => {
+                const IconComp = opt.icon;
+                const isEnabled = alertPreferences[opt.key];
+
+                return (
+                  <div
+                    key={opt.key}
+                    onClick={() => setAlertPreferences((prev) => ({ ...prev, [opt.key]: !prev[opt.key] }))}
+                    style={{
+                      padding: "12px 14px",
+                      background: isEnabled ? "rgba(255, 152, 0, 0.06)" : "rgba(255, 255, 255, 0.02)",
+                      border: isEnabled ? "1px solid rgba(255, 152, 0, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: "10px",
+                      transition: "all 0.18s ease",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                      <div
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          borderRadius: "8px",
+                          background: `${opt.color}20`,
+                          border: `1px solid ${opt.color}40`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: "2px",
+                        }}
+                      >
+                        <IconComp size={14} color={opt.color} />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#FFFFFF", display: "block" }}>
+                          {opt.label}
+                        </span>
+                        <span style={{ fontSize: "0.72rem", color: "#94A3B8", lineHeight: 1.35, display: "block", marginTop: "2px" }}>
+                          {opt.desc}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "20px",
+                        borderRadius: "10px",
+                        background: isEnabled ? "#FF9800" : "rgba(255, 255, 255, 0.16)",
+                        position: "relative",
+                        flexShrink: 0,
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          background: "#FFFFFF",
+                          position: "absolute",
+                          top: "2px",
+                          left: isEnabled ? "18px" : "2px",
+                          transition: "all 0.2s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
+              {optionsSavedToast && (
+                <span style={{ fontSize: "0.78rem", color: "#10B981", fontWeight: 700 }}>
+                  ✓ Preferences saved to your CineConnect account!
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setOptionsSavedToast(true);
+                  setTimeout(() => {
+                    setOptionsSavedToast(false);
+                    setShowOptionsModal(false);
+                  }, 1200);
+                }}
+                style={{
+                  background: "linear-gradient(135deg, #FFB300 0%, #FF9800 100%)",
+                  color: "#08090C",
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: "8px",
+                  fontSize: "0.82rem",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(255, 152, 0, 0.4)",
+                }}
+              >
+                Save &amp; Apply Alert Preferences
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Live Simulation Banner: Test Application Status Update */}
         <div
           style={{
@@ -135,7 +402,7 @@ export default function NotificationsPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <Sparkles size={16} color="#FF9800" />
               <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "#FFB74D" }}>
-                Real-Time Dispatch Engine (Live WebSocket & Push)
+                Real-Time Dispatch Engine (Live WebSocket &amp; Push)
               </span>
             </div>
             <p style={{ fontSize: "0.78rem", color: "#94A3B8", margin: "4px 0 0" }}>
@@ -157,7 +424,7 @@ export default function NotificationsPage() {
                 cursor: "pointer",
               }}
             >
-              🎉 Test "Selected"
+              🎉 Test &quot;Selected&quot;
             </button>
             <button
               onClick={() => triggerTestAlert("Under Review")}
@@ -172,7 +439,7 @@ export default function NotificationsPage() {
                 cursor: "pointer",
               }}
             >
-              🎬 Test "Under Review"
+              🎬 Test &quot;Under Review&quot;
             </button>
             <button
               onClick={() => triggerTestAlert("Not Selected")}
@@ -197,8 +464,10 @@ export default function NotificationsPage() {
           {[
             { id: "all", label: "All Notifications" },
             { id: "unread", label: `Unread (${unreadCount})` },
-            { id: "APPLICATION_STATUS", label: "Career & Applications" },
-            { id: "DIRECT_MESSAGE", label: "Direct Messages" },
+            { id: "callbacks", label: "🎬 Audition Callbacks & Screen Tests" },
+            { id: "reviews", label: "👁️ Showreel Reviews & Status" },
+            { id: "APPLICATION_STATUS", label: "📋 All Applications" },
+            { id: "DIRECT_MESSAGE", label: "💬 Casting DMs" },
           ].map((f) => (
             <button
               key={f.id}

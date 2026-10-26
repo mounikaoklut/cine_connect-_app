@@ -48,16 +48,16 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
   {
     id: "story-user",
     userId: "user-kabir",
-    userName: "Your Story",
+    userName: "My Story",
     userCraft: "Lead Actor",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80",
     isUserStory: true,
     isViewed: false,
     segments: [
       {
         id: "seg-user-1",
-        mediaUrl: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=900&auto=format&fit=crop&q=80",
         caption: "🎬 Table read day 2. Running through act 3 scene breakdown for next week's shoot!",
         timestamp: "Just now",
         tag: "Rehearsals",
@@ -65,7 +65,7 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
       },
       {
         id: "seg-user-2",
-        mediaUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1515634928627-2a4e0dae3ddf?w=900&auto=format&fit=crop&q=80",
         caption: "Self-tape audition submitted through CineConnect portal. Fingers crossed! 🤞✨",
         timestamp: "2h ago",
         tag: "Auditions",
@@ -78,14 +78,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "dharma-prods",
     userName: "Dharma Prods",
     userCraft: "Studio Banner",
-    avatar: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-dharma-1",
-        mediaUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=900&auto=format&fit=crop&q=80",
         caption: "🔴 LIVE from Studio 4: Final Screen Tests for 'Shadow of Verity' 🎬",
         timestamp: "10m ago",
         tag: "Director Callback",
@@ -93,7 +93,7 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
       },
       {
         id: "seg-dharma-2",
-        mediaUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=900&auto=format&fit=crop&q=80",
         caption: "Reviewing dramatic monologues submitted via CineConnect self-tape portal ✨",
         timestamp: "5m ago",
         tag: "Casting Room",
@@ -106,14 +106,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "zoya-akhtar",
     userName: "Zoya Akhtar",
     userCraft: "Director & Showrunner",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-zoya-1",
-        mediaUrl: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900&auto=format&fit=crop&q=80",
         caption: "Location scouting in Ladakh. Day 3. The light at 6am is pure cinema magic 🏔️🎥",
         timestamp: "25m ago",
         tag: "Location Scout",
@@ -134,14 +134,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "vikram-dop",
     userName: "Vikramaditya",
     userCraft: "Cinematographer (DOP)",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-vikram-1",
-        mediaUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=900&auto=format&fit=crop&q=80",
         caption: "Testing the new ARRI Alexa 35 with Cooke Anamorphic primes on soundstage 2 📸🎬",
         timestamp: "45m ago",
         tag: "Lens Tests",
@@ -154,14 +154,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "mukesh-chhabra",
     userName: "M. Chhabra",
     userCraft: "Casting Director",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-mukesh-1",
-        mediaUrl: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=900&auto=format&fit=crop&q=80",
         caption: "Auditions officially underway for period espionage drama. 120 actors screened today 🎭",
         timestamp: "1h ago",
         tag: "Cast Auditions",
@@ -174,14 +174,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "alia-bhatt",
     userName: "Alia Bhatt",
     userCraft: "Lead Actor",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1519741497674-611481863552?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-alia-1",
-        mediaUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=900&auto=format&fit=crop&q=80",
         caption: "Costume and look trials completed for upcoming neo-noir feature. Can't wait! 👗🕶️",
         timestamp: "2h ago",
         tag: "Look Tests",
@@ -194,14 +194,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "ranveer-singh",
     userName: "Ranveer Singh",
     userCraft: "Lead Actor",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1518173946687-a4c8a383392e?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-ranveer-1",
-        mediaUrl: "https://images.unsplash.com/photo-1518173946687-a4c8a383392e?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=900&auto=format&fit=crop&q=80",
         caption: "Stunt choreography session with South Indian stunt masters. Bruised but charged! 💥🔥",
         timestamp: "3h ago",
         tag: "Stunt Training",
@@ -214,14 +214,14 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "red-chillies",
     userName: "Red Chillies VFX",
     userCraft: "VFX & Post Studio",
-    avatar: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&auto=format&fit=crop&q=80",
-    thumbnail: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
       {
         id: "seg-rc-1",
-        mediaUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80",
         caption: "Deep composite renders underway in Houdini & Nuke. 420 shots cleared today 🖥️✨",
         timestamp: "4h ago",
         tag: "VFX Breakdown",
@@ -321,6 +321,8 @@ export default function CineStoriesSection({
   const scrollStartRef = useRef(0);
   const dragThresholdCrossedRef = useRef(false);
   const justDraggedRef = useRef(false);
+  const hasDraggedRef = useRef(false);
+  const scrollDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Viewer Touch/Swipe Refs
   const viewerTouchStartRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
@@ -657,7 +659,7 @@ export default function CineStoriesSection({
     setSelectedTag("#OnSet");
     setSelectedMedia(null);
 
-    showToast("Added to Your Story! 🎬✨");
+    showToast("Added to My Story! 🎬✨");
 
     // Immediately play the user's updated story
     setTimeout(() => {
@@ -996,126 +998,132 @@ export default function CineStoriesSection({
           const isUnseen = !story.isViewed && !story.isUserStory;
 
           return (
-            <div
-              key={story.id}
-              onClick={() => {
-                if (hasDraggedRef.current) return;
-                if (story.isUserStory) {
-                  setShowActionSheet(true);
-                } else {
-                  handleOpenStory(index);
-                }
-              }}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "6px",
-                cursor: isDragging ? "grabbing" : "pointer",
-                flexShrink: 0,
-                width: "64px",
-                userSelect: "none",
-              }}
-            >
-              {/* Square Thumbnail Container */}
+            <React.Fragment key={story.id}>
               <div
+                onClick={() => {
+                  if (hasDraggedRef.current) return;
+                  if (story.isUserStory) {
+                    setShowActionSheet(true);
+                  } else {
+                    handleOpenStory(index);
+                  }
+                }}
                 style={{
-                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                  cursor: isDragging ? "grabbing" : "pointer",
+                  flexShrink: 0,
                   width: "64px",
-                  height: "64px",
-                  borderRadius: "12px",
-                  padding: "2px",
-                  background: isUnseen
-                    ? "linear-gradient(135deg, #FFB300 0%, #FF9800 100%)"
-                    : "rgba(255, 255, 255, 0.14)",
-                  boxShadow: isUnseen ? "0 0 10px rgba(255, 152, 0, 0.45)" : "none",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                  userSelect: "none",
                 }}
               >
-                {/* Inner Square Media Tile */}
+                {/* Square Thumbnail Container */}
                 <div
                   style={{
                     position: "relative",
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    background: "#0d1017",
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "12px",
+                    padding: "2px",
+                    background: isUnseen
+                      ? "linear-gradient(135deg, #FFB300 0%, #FF9800 100%)"
+                      : "rgba(255, 255, 255, 0.14)",
+                    boxShadow: isUnseen ? "0 0 10px rgba(255, 152, 0, 0.45)" : "none",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
                   }}
                 >
-                  <img
-                    src={story.thumbnail}
-                    alt={story.userName}
-                    draggable={false}
+                  {/* Inner Square Media Tile */}
+                  <div
                     style={{
+                      position: "relative",
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                      pointerEvents: "none",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      background: "#0d1017",
                     }}
-                  />
+                  >
+                    <img
+                      src={story.thumbnail}
+                      alt={story.userName}
+                      draggable={false}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                        pointerEvents: "none",
+                      }}
+                    />
 
-                  {/* Dark gradient overlay for readability */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)",
-                      pointerEvents: "none",
-                    }}
-                  />
+                    {/* Subtle bottom gradient vignette */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.4) 100%)",
+                        pointerEvents: "none",
+                      }}
+                    />
+
+                    {/* Instagram-style Plus Button INSIDE the media tile at bottom-right corner */}
+                    {story.isUserStory && (
+                      <button
+                        type="button"
+                        id="my-story-plus-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowActionSheet(true);
+                        }}
+                        title="Add to My Story"
+                        style={{
+                          position: "absolute",
+                          bottom: "3px",
+                          right: "3px",
+                          width: "21px",
+                          height: "21px",
+                          borderRadius: "50%",
+                          background: "#0095F6", // Instagram's iconic blue plus button
+                          border: "1.5px solid #FFFFFF", // Instagram crisp white border
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.55)",
+                          cursor: "pointer",
+                          transition: "transform 0.15s ease",
+                          padding: 0,
+                          outline: "none",
+                          zIndex: 10,
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.18)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                      >
+                        <Plus size={13} color="#FFFFFF" strokeWidth={3.5} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* 'Your Story' Orange Plus Badge */}
-                {story.isUserStory && (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowActionSheet(true);
-                    }}
-                    title="Add to Your Story"
-                    style={{
-                      position: "absolute",
-                      bottom: "-3px",
-                      right: "-3px",
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "6px",
-                      background: "#FF9800",
-                      border: "2px solid #080a0f",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 2px 6px rgba(255, 152, 0, 0.5)",
-                      cursor: "pointer",
-                      transition: "transform 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                  >
-                    <Plus size={12} color="#08090C" strokeWidth={3.2} />
-                  </div>
-                )}
+                {/* Story User Name */}
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: isUnseen || story.isUserStory ? 700 : 500,
+                    color: isUnseen || story.isUserStory ? "#FFFFFF" : "#CBD5E1",
+                    width: "64px",
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  {story.userName}
+                </span>
               </div>
-
-              {/* Story User Name */}
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: isUnseen ? 700 : 500,
-                  color: isUnseen ? "#FFFFFF" : "#CBD5E1",
-                  width: "64px",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                {story.userName}
-              </span>
-            </div>
+            </React.Fragment>
           );
         })}
       </div>
@@ -1171,7 +1179,7 @@ export default function CineStoriesSection({
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <img
                   src={stories[0]?.avatar}
-                  alt="Your Story"
+                  alt="My Story"
                   style={{
                     width: "38px",
                     height: "38px",
@@ -1182,7 +1190,7 @@ export default function CineStoriesSection({
                 />
                 <div>
                   <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 800, color: "#FFFFFF" }}>
-                    Add to Your Story
+                    Add to My Story
                   </h3>
                   <p style={{ margin: 0, fontSize: "11px", color: "#858995" }}>
                     Share a photo, self-tape, or clip with the industry
@@ -1341,7 +1349,7 @@ export default function CineStoriesSection({
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "13px", fontWeight: 700, color: "#FFFFFF" }}>
-                      ▶️ View Your Story
+                      ▶️ View My Story
                     </div>
                     <div style={{ fontSize: "11px", color: "#858995" }}>
                       {stories[0].segments.length} updates currently live
@@ -2195,7 +2203,7 @@ export default function CineStoriesSection({
               >
                 <img
                   src={stories[0]?.avatar}
-                  alt="Your Story"
+                  alt="My Story"
                   style={{
                     width: "26px",
                     height: "26px",
@@ -2204,7 +2212,7 @@ export default function CineStoriesSection({
                     border: "1.5px solid #08090C",
                   }}
                 />
-                <span>Your story</span>
+                <span>My Story</span>
                 <ChevronRight size={16} strokeWidth={3} />
               </button>
             </div>
@@ -2297,7 +2305,7 @@ export default function CineStoriesSection({
           </div>
 
           {/* Desktop Left / Right Story Navigation Arrows */}
-          {activeStoryIndex > 0 && (
+          {activeStoryIndex !== null && activeStoryIndex > 0 && (
             <button
               type="button"
               onClick={(e) => {
@@ -2330,7 +2338,7 @@ export default function CineStoriesSection({
             </button>
           )}
 
-          {activeStoryIndex < stories.length - 1 && (
+          {activeStoryIndex !== null && activeStoryIndex < stories.length - 1 && (
             <button
               type="button"
               onClick={(e) => {

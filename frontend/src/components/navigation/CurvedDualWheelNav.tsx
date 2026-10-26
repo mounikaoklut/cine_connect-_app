@@ -3,24 +3,24 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   Home,
+  Search,
   Clapperboard,
   MessageSquare,
   Bell,
   UserRound,
   Settings,
-  FolderHeart,
   Film,
   LucideIcon,
 } from "lucide-react";
 
 export type RouteKey =
   | "Home"
+  | "Search"
   | "Opportunities"
-  | "Messages"
   | "Notifications"
   | "Profile"
-  | "Settings"
-  | "Pipeline";
+  | "Messages"
+  | "Settings";
 
 export interface NavWheelItem {
   key: RouteKey;
@@ -30,11 +30,11 @@ export interface NavWheelItem {
 
 export const NAV_WHEEL_ITEMS: NavWheelItem[] = [
   { key: "Home", label: "Home", icon: Home },
+  { key: "Search", label: "Search", icon: Search },
   { key: "Opportunities", label: "Opportunities", icon: Clapperboard },
-  { key: "Messages", label: "Messages", icon: MessageSquare },
-  { key: "Notifications", label: "Notification", icon: Bell },
+  { key: "Notifications", label: "Notifications", icon: Bell },
   { key: "Profile", label: "Profile", icon: UserRound },
-  { key: "Pipeline", label: "My Applications", icon: FolderHeart },
+  { key: "Messages", label: "Messages", icon: MessageSquare },
   { key: "Settings", label: "Settings", icon: Settings },
 ];
 
@@ -342,7 +342,7 @@ export default function CurvedDualWheelNav({
                   style={{
                     marginTop: "3px",
                     background: isApex ? "#101219" : "rgba(8, 10, 16, 0.5)",
-                    border: isApex ? "1px solid #FF9800" : "1px solid transparent",
+                    border: "none",
                     padding: isApex ? "1.5px 7px" : "1px 5px",
                     borderRadius: "6px",
                     boxShadow: isApex ? "0 2px 5px rgba(255, 152, 0, 0.3)" : "none",

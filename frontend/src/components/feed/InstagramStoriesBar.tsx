@@ -52,7 +52,7 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     segments: [
       {
         id: "seg-dharma-1",
-        mediaUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=900&auto=format&fit=crop&q=80",
         caption: "🔴 LIVE from Studio 4: Final Screen Tests for 'Shadow of Verity' 🎬",
         timestamp: "10m ago",
         tag: "Director Callback",
@@ -71,7 +71,7 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     userId: "kabir-mehra",
     userName: "Kabir M.",
     userCraft: "Lead Actor",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
     verified: true,
     isViewed: false,
     segments: [
@@ -138,7 +138,7 @@ export const INITIAL_CINE_STORIES: CineStory[] = [
     segments: [
       {
         id: "seg-rc-1",
-        mediaUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=900&auto=format&fit=crop&q=80",
+        mediaUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80",
         caption: "Pre-vis breakdown: 420 digital matte layers for the cyberpunk sequence 💻🔥",
         timestamp: "6h ago",
         tag: "CGI Pipeline",
@@ -212,7 +212,7 @@ export default function InstagramStoriesBar({
   const MEDIA_PRESETS = [
     {
       label: "Director's Monitor",
-      url: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80",
+      url: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=900&auto=format&fit=crop&q=80",
     },
     {
       label: "Camera Rig",
@@ -235,7 +235,7 @@ export default function InstagramStoriesBar({
       userId: "user-me",
       userName: "Your Story",
       userCraft: "Actor & Creator",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
       isUserStory: true,
       isViewed: userStorySegments.length > 0 ? false : true,
       segments: userStorySegments,
@@ -831,7 +831,7 @@ export function InstagramStoriesHeaderButton({
   const MEDIA_PRESETS = [
     {
       label: "Director's Monitor",
-      url: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&fit=crop&q=80",
+      url: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=900&auto=format&fit=crop&q=80",
     },
     {
       label: "Camera Rig",
@@ -853,7 +853,7 @@ export function InstagramStoriesHeaderButton({
       userId: "user-me",
       userName: "Your Story",
       userCraft: "Actor & Creator",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
       isUserStory: true,
       isViewed: userStorySegments.length > 0 ? false : true,
       segments: userStorySegments,

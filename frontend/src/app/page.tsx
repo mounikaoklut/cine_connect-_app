@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import LandingPage from "@/components/LandingPage";
 import HomePage from "@/components/HomePage";
@@ -30,8 +31,22 @@ import {
 import { X, Clapperboard, AlertCircle } from "lucide-react";
 
 export default function CineConnectMasterPage() {
+  const router = useRouter();
+
   // Master View: Landing Page vs Home Studio Hub vs My Profile
   const [currentView, setCurrentView] = useState<"landing" | "home" | "profile">("landing");
+
+  const handleWheelNavigate = (path: string) => {
+    if (path === "/home" || path === "/") {
+      setCurrentView("home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (path === "/profile") {
+      setCurrentView("profile");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      router.push(path);
+    }
+  };
 
   // Modals state
   const [activeAudition, setActiveAudition] = useState<CastingCall | null>(null);
@@ -71,7 +86,7 @@ export default function CineConnectMasterPage() {
     profile: {
       name: "Kabir Mehra",
       bio: "Method actor and theater artist with 8+ years across independent cinema, OTT thrillers, and commercial campaigns. Trained at the National School of Drama.",
-      photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+      photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
       primary_craft: "Actor",
       secondary_crafts: ["Voice Over Artist", "Action / Stunts"],
       city: "Mumbai",
@@ -128,7 +143,7 @@ export default function CineConnectMasterPage() {
       {
         id: "port-1",
         type: "showreel",
-        s3_url: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
+        s3_url: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
         title: "Dramatic Showreel (2025 - 2026)",
         description: "Compilation of intense monologue and dramatic scenes from OTT thriller series.",
         is_public: true,
@@ -209,7 +224,7 @@ export default function CineConnectMasterPage() {
     const newItem = {
       id: "port-" + Date.now(),
       type: newPortType,
-      s3_url: newPortUrl || "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
+      s3_url: newPortUrl || "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
       title: newPortTitle || "Showcase Media",
       description: newPortDesc,
       is_public: true,
@@ -343,16 +358,7 @@ export default function CineConnectMasterPage() {
           />
           <CurvedWheelNav
             currentActivePath="/home"
-            onNavigate={(path) => {
-              if (path === "/home") {
-                setCurrentView("home");
-              } else if (path === "/profile") {
-                setCurrentView("profile");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else {
-                window.location.href = path;
-              }
-            }}
+            onNavigate={handleWheelNavigate}
           />
         </>
       )}
@@ -361,16 +367,7 @@ export default function CineConnectMasterPage() {
         <div style={{ display: "flex", minHeight: "calc(100vh - 72px)", background: "#0D0E12" }}>
           <CurvedWheelNav
             currentActivePath="/home"
-            onNavigate={(path) => {
-              if (path === "/home") {
-                setCurrentView("home");
-              } else if (path === "/profile") {
-                setCurrentView("profile");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else {
-                window.location.href = path;
-              }
-            }}
+            onNavigate={handleWheelNavigate}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
             <HomePage
@@ -398,16 +395,7 @@ export default function CineConnectMasterPage() {
         <div style={{ display: "flex", minHeight: "calc(100vh - 72px)", background: "#0D0E12" }}>
           <CurvedWheelNav
             currentActivePath="/profile"
-            onNavigate={(path) => {
-              if (path === "/home") {
-                setCurrentView("home");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else if (path === "/profile") {
-                setCurrentView("profile");
-              } else {
-                window.location.href = path;
-              }
-            }}
+            onNavigate={handleWheelNavigate}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
             <ProfilePortal
