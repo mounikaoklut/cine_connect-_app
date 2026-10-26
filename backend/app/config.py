@@ -24,11 +24,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # OTP
-    OTP_LENGTH: int = 6
-    OTP_EXPIRE_SECONDS: int = 300  # 5 minutes
-    OTP_MAX_ATTEMPTS: int = 5
-    OTP_RATE_LIMIT_SECONDS: int = 900  # 15 minutes
+    # Authentication rate limiting & session
 
     # AWS S3 / MinIO
     S3_ENDPOINT_URL: str | None = "http://localhost:9000"
