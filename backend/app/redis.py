@@ -1,5 +1,6 @@
-import time
-from typing import Any
+"""Redis connection pool for token blacklisting, rate limiting, and caching."""
+
+# pyrefly: ignore [missing-import]
 import redis.asyncio as redis
 
 from app.config import get_settings

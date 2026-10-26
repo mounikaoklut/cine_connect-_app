@@ -42,15 +42,15 @@ export default function UserPortalPage() {
   const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
   // Auth Form State
+  const [accountTypeTab, setAccountTypeTab] = useState<"talent" | "production">("talent");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
+  const [authCompanyName, setAuthCompanyName] = useState("");
   const [authPhone, setAuthPhone] = useState("+91 98765 43210");
-  const [authOtp, setAuthOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [authSuccessMsg, setAuthSuccessMsg] = useState("");
 
   // Demo user fallback if backend isn't running yet locally
   const [userData, setUserData] = useState<UserProfile>({
@@ -199,21 +199,27 @@ export default function UserPortalPage() {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError("");
+    setAuthSuccessMsg("");
 
     try {
       if (authMode === "register") {
-        const res = await ApiClient.register({
-          email: authEmail,
-          password: authPassword,
-          name: authName,
-        });
-        setUserData((prev) => ({
-          ...prev,
-          id: res.user.id,
-          email: res.user.email,
-          profile: { ...prev.profile, name: res.user.name },
-        }));
-        setShowAuthModal(false);
+        if (accountTypeTab === "talent") {
+          await ApiClient.registerTalent({
+            email: authEmail,
+            password: authPassword,
+            name: authName,
+            phone: authPhone,
+          });
+        } else {
+          await ApiClient.registerProduction({
+            company_name: authCompanyName,
+            email: authEmail,
+            phone: authPhone,
+            password: authPassword,
+          });
+        }
+        setAuthSuccessMsg("Registration successful! Please sign in with your email and password.");
+        setAuthMode("login");
       } else {
         const res = await ApiClient.login({
           email: authEmail,
@@ -223,6 +229,7 @@ export default function UserPortalPage() {
           ...prev,
           id: res.user.id,
           email: res.user.email,
+          phone: res.user.phone || prev.phone,
           profile: { ...prev.profile, name: res.user.name },
         }));
         setShowAuthModal(false);
@@ -1223,7 +1230,7 @@ export default function UserPortalPage() {
             padding: "20px",
           }}
         >
-          <div className="glass-panel" style={{ width: "100%", maxWidth: "440px", padding: "32px", position: "relative" }}>
+          <div className="glass-panel" style={{ width: "100%", maxWidth: "460px", padding: "32px", position: "relative" }}>
             <button
               onClick={() => setShowAuthModal(false)}
               style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
@@ -1247,12 +1254,88 @@ export default function UserPortalPage() {
                 <Clapperboard size={24} color="#000" />
               </div>
               <h3 style={{ fontSize: "1.4rem", fontWeight: 800 }}>
-                {authMode === "register" ? "Create Talent Account" : "Welcome Back"}
+                {authMode === "register"
+                  ? accountTypeTab === "talent"
+                    ? "Talent Sign Up"
+                    : "Production House Sign Up"
+                  : "Welcome Back"}
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-                Connect directly with casting directors and studios
+                {authMode === "register"
+                  ? "Connect film & media talent with top industry opportunities"
+                  : "Sign in with your email address and password"}
               </p>
             </div>
+
+            {/* Account Type Toggle on Register Mode */}
+            {authMode === "register" && (
+              <div
+                style={{
+                  display: "flex",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "4px",
+                  marginBottom: "16px",
+                  gap: "4px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setAccountTypeTab("talent")}
+                  style={{
+                    flex: 1,
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: accountTypeTab === "talent" ? "var(--accent-gold)" : "transparent",
+                    color: accountTypeTab === "talent" ? "#000" : "var(--text-secondary)",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Talent Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountTypeTab("production")}
+                  style={{
+                    flex: 1,
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "none",
+                    background: accountTypeTab === "production" ? "var(--accent-gold)" : "transparent",
+                    color: accountTypeTab === "production" ? "#000" : "var(--text-secondary)",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Production House
+                </button>
+              </div>
+            )}
+
+            {authSuccessMsg && (
+              <div
+                style={{
+                  background: "rgba(34, 197, 94, 0.15)",
+                  border: "1px solid rgba(34, 197, 94, 0.3)",
+                  color: "#86efac",
+                  padding: "10px 14px",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "0.85rem",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <CheckCircle2 size={16} /> {authSuccessMsg}
+              </div>
+            )}
 
             {authError && (
               <div
@@ -1274,7 +1357,7 @@ export default function UserPortalPage() {
             )}
 
             <form onSubmit={handleAuthSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {authMode === "register" && (
+              {authMode === "register" && accountTypeTab === "talent" && (
                 <div>
                   <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Full Name</label>
                   <input
@@ -1284,6 +1367,20 @@ export default function UserPortalPage() {
                     className="input-field"
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {authMode === "register" && accountTypeTab === "production" && (
+                <div>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Production House Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dharma Productions"
+                    className="input-field"
+                    value={authCompanyName}
+                    onChange={(e) => setAuthCompanyName(e.target.value)}
                   />
                 </div>
               )}
@@ -1300,6 +1397,20 @@ export default function UserPortalPage() {
                 />
               </div>
 
+              {authMode === "register" && (
+                <div>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Mobile Number</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+91 98765 43210"
+                    className="input-field"
+                    value={authPhone}
+                    onChange={(e) => setAuthPhone(e.target.value)}
+                  />
+                </div>
+              )}
+
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Password</label>
                 <input
@@ -1313,7 +1424,13 @@ export default function UserPortalPage() {
               </div>
 
               <button type="submit" disabled={authLoading} className="btn-primary" style={{ width: "100%", marginTop: "8px" }}>
-                {authLoading ? "Authenticating..." : authMode === "register" ? "Sign Up & Build Profile" : "Sign In"}
+                {authLoading
+                  ? "Authenticating..."
+                  : authMode === "register"
+                  ? accountTypeTab === "talent"
+                    ? "Sign Up as Talent"
+                    : "Register Production House"
+                  : "Sign In"}
               </button>
             </form>
 
@@ -1322,7 +1439,11 @@ export default function UserPortalPage() {
                 <span>
                   Already have an account?{" "}
                   <button
-                    onClick={() => setAuthMode("login")}
+                    onClick={() => {
+                      setAuthMode("login");
+                      setAuthError("");
+                      setAuthSuccessMsg("");
+                    }}
                     style={{ background: "none", border: "none", color: "var(--accent-gold)", fontWeight: 700, cursor: "pointer" }}
                   >
                     Sign In
@@ -1332,7 +1453,11 @@ export default function UserPortalPage() {
                 <span>
                   New to CineConnect?{" "}
                   <button
-                    onClick={() => setAuthMode("register")}
+                    onClick={() => {
+                      setAuthMode("register");
+                      setAuthError("");
+                      setAuthSuccessMsg("");
+                    }}
                     style={{ background: "none", border: "none", color: "var(--accent-gold)", fontWeight: 700, cursor: "pointer" }}
                   >
                     Create Account
