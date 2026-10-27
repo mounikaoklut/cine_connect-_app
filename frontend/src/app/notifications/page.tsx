@@ -460,7 +460,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Pills */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", overflowX: "auto", paddingBottom: "4px" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap", padding: "4px 0 8px", alignItems: "center" }}>
           {[
             { id: "all", label: "All Notifications" },
             { id: "unread", label: `Unread (${unreadCount})` },
@@ -476,13 +476,18 @@ export default function NotificationsPage() {
                 background: activeFilter === f.id ? "rgba(255, 152, 0, 0.18)" : "rgba(255, 255, 255, 0.04)",
                 border: activeFilter === f.id ? "1.5px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.1)",
                 color: activeFilter === f.id ? "#FFB74D" : "#94A3B8",
-                padding: "7px 16px",
+                padding: "8px 16px",
+                minHeight: "36px",
+                boxSizing: "border-box",
                 borderRadius: "20px",
                 fontSize: "0.8rem",
                 fontWeight: activeFilter === f.id ? 700 : 500,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 transition: "all 0.2s ease",
+                display: "inline-flex",
+                alignItems: "center",
+                lineHeight: "1.2",
               }}
             >
               {f.label}

@@ -826,6 +826,117 @@ export default function MobileAppSimulatorPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchCategory, setSearchCategory] = useState<"all" | "reels" | "posts" | "opportunities" | "talent" | "pitches">("all");
 
+  // Home Feed Inline Studio Composer State
+  const [isHomeComposerOpen, setIsHomeComposerOpen] = useState(false);
+  const [homeComposerType, setHomeComposerType] = useState<"showreel" | "announcement" | "casting" | "pitch" | "bts">("showreel");
+  const [homeComposerContent, setHomeComposerContent] = useState("");
+  const [homeComposerMediaUrl, setHomeComposerMediaUrl] = useState("/reels/reel1.mp4");
+  const [homeComposerMediaType, setHomeComposerMediaType] = useState<"video" | "image">("video");
+  const [homeComposerSelectedPreset, setHomeComposerSelectedPreset] = useState<string>("preset-1");
+  const [homeComposerCustomUrlOpen, setHomeComposerCustomUrlOpen] = useState(false);
+  const [homeComposerTags, setHomeComposerTags] = useState<string[]>(["#AuditionTape", "#Monologue", "#MethodActing"]);
+  const [isHomeSubmitting, setIsHomeSubmitting] = useState(false);
+
+  const homeComposerAuditionPresets = [
+    {
+      id: "preset-1",
+      label: "🎬 Crime Noir Monologue",
+      url: "/reels/reel1.mp4",
+      type: "video" as const,
+      desc: "Dramatic self-tape (1080p HD)",
+    },
+    {
+      id: "preset-2",
+      label: "🎭 Commercial Range",
+      url: "/reels/reel2.mp4",
+      type: "video" as const,
+      desc: "Expressive character read",
+    },
+    {
+      id: "preset-3",
+      label: "🥋 Action Stunt Tape",
+      url: "/reels/reel3.mp4",
+      type: "video" as const,
+      desc: "Combat & choreography reel",
+    },
+    {
+      id: "preset-4",
+      label: "🌟 Method Acting Scene",
+      url: "/reels/reel4.mp4",
+      type: "video" as const,
+      desc: "Emotional dialogue piece",
+    },
+    {
+      id: "preset-photo",
+      label: "📸 Look Test Headshot",
+      url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80",
+      type: "image" as const,
+      desc: "Studio portrait look test",
+    },
+  ];
+
+  const homeComposerSuggestedTags = [
+    "#AuditionTape",
+    "#Monologue",
+    "#MethodActing",
+    "#Bollywood",
+    "#CastingCall",
+    "#SelfTape",
+    "#IndieFilm",
+  ];
+
+  const handleToggleHomeTag = (tag: string) => {
+    setHomeComposerTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+
+  const handleSelectHomePreset = (preset: typeof homeComposerAuditionPresets[0]) => {
+    setHomeComposerSelectedPreset(preset.id);
+    setHomeComposerMediaUrl(preset.url);
+    setHomeComposerMediaType(preset.type);
+    setHomeComposerCustomUrlOpen(false);
+  };
+
+  const handlePublishHomePost = () => {
+    if (!homeComposerContent.trim() && !homeComposerMediaUrl) return;
+
+    setIsHomeSubmitting(true);
+    setTimeout(() => {
+      const isVideo = homeComposerMediaType === "video" || homeComposerMediaUrl.endsWith(".mp4") || homeComposerType === "showreel";
+      const newPost: FeedPost = {
+        id: "feed-" + Date.now(),
+        author: {
+          name: "Kabir Mehra",
+          craft: "Actor",
+          avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
+          verified: true,
+        },
+        timestamp: "Just now",
+        type: homeComposerType,
+        content:
+          homeComposerContent.trim() ||
+          (homeComposerType === "showreel"
+            ? "Audition tape & monologue breakdown shared with casting directors."
+            : homeComposerType === "casting"
+            ? "New casting call breakdown posted for upcoming feature project."
+            : "Update from set with the filmmaking community."),
+        mediaUrl: homeComposerMediaUrl.trim() || (isVideo ? "/reels/reel1.mp4" : undefined),
+        mediaType: isVideo ? "video" : "image",
+        tags: homeComposerTags.length > 0 ? homeComposerTags : ["#AuditionTape", "#Monologue"],
+        likes: 0,
+        commentsCount: 0,
+        shares: 0,
+        isLiked: false,
+      };
+
+      setFeedPosts([newPost, ...feedPosts]);
+      setIsHomeSubmitting(false);
+      setIsHomeComposerOpen(false);
+      setHomeComposerContent("");
+      setToastMessage("🎬 Audition tape published live to your Home Feed!");
+      setTimeout(() => setToastMessage(null), 3200);
+    }, 400);
+  };
+
   const handleToggleFollow = (authorName: string) => {
     setFollowedAuthors((prev) =>
       prev.includes(authorName)
@@ -1476,6 +1587,7 @@ export default function MobileAppSimulatorPage() {
   >("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifUrgentOnly, setNotifUrgentOnly] = useState(false);
+  const [notifCategoryViewMode, setNotifCategoryViewMode] = useState<"wrap" | "scroll">("wrap");
   const [showNotifPreferencesModal, setShowNotifPreferencesModal] = useState(false);
   const [selectedNotifDetail, setSelectedNotifDetail] = useState<any | null>(null);
   const [notifPreferences, setNotifPreferences] = useState({
@@ -1720,29 +1832,652 @@ export default function MobileAppSimulatorPage() {
             <CineStoriesSection onOpenCreateStory={() => setShowCreatePost(true)} />
 
             <div style={{ padding: "0 12px", display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* Quick composer banner */}
-              <div
-                onClick={() => setShowCreatePost(true)}
-                style={{
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid var(--border-subtle)",
-                  borderRadius: "12px",
-                  padding: "10px 14px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  cursor: "pointer",
-                }}
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
-                  alt="Avatar"
-                  style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }}
-                />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                  Share an audition tape or update...
-                </span>
-              </div>
+              {/* Fully Functional Home Feed Studio Composer */}
+              {!isHomeComposerOpen ? (
+                /* Collapsed Bar State (Matches screenshot with interactive enhancements) */
+                <div
+                  style={{
+                    background: "rgba(255, 255, 255, 0.04)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "14px",
+                    padding: "10px 12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <div
+                    onClick={() => setIsHomeComposerOpen(true)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      <img
+                        src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
+                        alt="Kabir Mehra"
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: "1.5px solid #FF9800",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          right: 0,
+                          width: "8px",
+                          height: "8px",
+                          background: "#10B981",
+                          borderRadius: "50%",
+                          border: "1.5px solid #0c1017",
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        flex: 1,
+                        background: "rgba(0, 0, 0, 0.35)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: "9999px",
+                        padding: "7px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        transition: "border-color 0.15s ease",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.82rem", color: "#94A3B8" }}>
+                        Share an audition tape or update...
+                      </span>
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, #FF9800 0%, #F59E0B 100%)",
+                          color: "#08090C",
+                          padding: "2px 8px",
+                          borderRadius: "9999px",
+                          fontSize: "0.64rem",
+                          fontWeight: 800,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        <Video size={10} strokeWidth={2.8} /> Post
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick-action shortcuts directly on the bar */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      overflowX: "auto",
+                      scrollbarWidth: "none",
+                      paddingTop: "2px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeComposerType("showreel");
+                        setHomeComposerMediaUrl("/reels/reel1.mp4");
+                        setHomeComposerMediaType("video");
+                        setHomeComposerSelectedPreset("preset-1");
+                        setIsHomeComposerOpen(true);
+                      }}
+                      style={{
+                        background: "rgba(255, 152, 0, 0.12)",
+                        border: "1px solid rgba(255, 152, 0, 0.35)",
+                        color: "#FF9800",
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Video size={12} /> Audition Tape
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeComposerType("bts");
+                        setHomeComposerMediaUrl("https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80");
+                        setHomeComposerMediaType("image");
+                        setHomeComposerSelectedPreset("preset-photo");
+                        setIsHomeComposerOpen(true);
+                      }}
+                      style={{
+                        background: "rgba(56, 189, 248, 0.1)",
+                        border: "1px solid rgba(56, 189, 248, 0.3)",
+                        color: "#38BDF8",
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      📸 Look Test
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeComposerType("casting");
+                        setIsHomeComposerOpen(true);
+                      }}
+                      style={{
+                        background: "rgba(16, 185, 129, 0.1)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        color: "#34D399",
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Clapperboard size={12} /> Casting Call
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeComposerType("pitch");
+                        setIsHomeComposerOpen(true);
+                      }}
+                      style={{
+                        background: "rgba(244, 63, 94, 0.1)",
+                        border: "1px solid rgba(244, 63, 94, 0.3)",
+                        color: "#FB7185",
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <FileText size={12} /> Script Pitch
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Expanded Studio Composer */
+                <div
+                  style={{
+                    background: "linear-gradient(180deg, #131722 0%, #0c0f16 100%)",
+                    border: "1.5px solid rgba(255, 152, 0, 0.4)",
+                    borderRadius: "16px",
+                    padding: "14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 152, 0, 0.15)",
+                    position: "relative",
+                  }}
+                >
+                  {/* Top Bar with User Info & Close */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <img
+                        src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
+                        alt="Kabir Mehra"
+                        style={{
+                          width: "34px",
+                          height: "34px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: "1.5px solid #FF9800",
+                        }}
+                      />
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
+                            Kabir Mehra
+                          </span>
+                          <CheckCircle2 size={12} color="#FF9800" />
+                          <span
+                            style={{
+                              background: "rgba(255, 152, 0, 0.2)",
+                              color: "#FF9800",
+                              fontSize: "0.62rem",
+                              fontWeight: 800,
+                              padding: "1px 5px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            STUDIO
+                          </span>
+                        </div>
+                        <span style={{ fontSize: "0.68rem", color: "#94A3B8" }}>
+                          Actor • Public Feed (Directors & Producers)
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsHomeComposerOpen(false)}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        color: "#94A3B8",
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+
+                  {/* Post Type Selector Pills */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "5px",
+                      overflowX: "auto",
+                      scrollbarWidth: "none",
+                      paddingBottom: "2px",
+                    }}
+                  >
+                    {[
+                      { type: "showreel" as const, label: "🎬 Audition Tape" },
+                      { type: "announcement" as const, label: "📣 Update" },
+                      { type: "casting" as const, label: "🎭 Casting Call" },
+                      { type: "bts" as const, label: "📸 Look Test" },
+                      { type: "pitch" as const, label: "📜 Script Pitch" },
+                    ].map((item) => (
+                      <button
+                        key={item.type}
+                        type="button"
+                        onClick={() => {
+                          setHomeComposerType(item.type);
+                          if (item.type === "showreel" && !homeComposerMediaUrl) {
+                            setHomeComposerMediaUrl("/reels/reel1.mp4");
+                            setHomeComposerMediaType("video");
+                            setHomeComposerSelectedPreset("preset-1");
+                          }
+                        }}
+                        style={{
+                          background:
+                            homeComposerType === item.type
+                              ? "linear-gradient(135deg, #FF9800 0%, #F59E0B 100%)"
+                              : "rgba(255, 255, 255, 0.05)",
+                          color: homeComposerType === item.type ? "#08090C" : "#CBD5E1",
+                          border:
+                            homeComposerType === item.type
+                              ? "1px solid #FF9800"
+                              : "1px solid rgba(255, 255, 255, 0.08)",
+                          borderRadius: "9999px",
+                          padding: "4px 10px",
+                          fontSize: "0.72rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Adaptive Textarea */}
+                  <div>
+                    <textarea
+                      rows={3}
+                      value={homeComposerContent}
+                      onChange={(e) => setHomeComposerContent(e.target.value)}
+                      placeholder={
+                        homeComposerType === "showreel"
+                          ? "Share details about your audition tape (monologue title, character arc, accent, or scene context)..."
+                          : homeComposerType === "casting"
+                          ? "Describe character requirements, audition sides, compensation, and shoot dates..."
+                          : homeComposerType === "pitch"
+                          ? "Logline, genre, character synopsis, and creative vision..."
+                          : "Share a wrap update, upcoming premiere, or audition milestone with the community..."
+                      }
+                      style={{
+                        width: "100%",
+                        background: "rgba(0, 0, 0, 0.45)",
+                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        borderRadius: "10px",
+                        padding: "10px",
+                        color: "#fff",
+                        fontSize: "0.82rem",
+                        lineHeight: 1.4,
+                        resize: "none",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+
+                  {/* Audition Tape & Media Presets */}
+                  <div
+                    style={{
+                      background: "rgba(0, 0, 0, 0.35)",
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "10px",
+                      padding: "10px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span
+                        style={{
+                          fontSize: "0.72rem",
+                          color: "#FF9800",
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        <Film size={12} /> 1-Click Audition Reel Presets
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setHomeComposerCustomUrlOpen(!homeComposerCustomUrlOpen)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#38BDF8",
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {homeComposerCustomUrlOpen ? "Hide Custom URL" : "+ Custom Link"}
+                      </button>
+                    </div>
+
+                    {/* Presets Horizontal Scroll */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        overflowX: "auto",
+                        scrollbarWidth: "none",
+                        paddingBottom: "2px",
+                      }}
+                    >
+                      {homeComposerAuditionPresets.map((preset) => {
+                        const isSelected =
+                          homeComposerSelectedPreset === preset.id && homeComposerMediaUrl === preset.url;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => handleSelectHomePreset(preset)}
+                            style={{
+                              background: isSelected ? "rgba(255, 152, 0, 0.2)" : "rgba(255, 255, 255, 0.04)",
+                              border: isSelected ? "1.5px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.08)",
+                              borderRadius: "8px",
+                              padding: "6px 8px",
+                              textAlign: "left",
+                              cursor: "pointer",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "1px",
+                              minWidth: "120px",
+                              flexShrink: 0,
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                  fontWeight: 700,
+                                  color: isSelected ? "#FF9800" : "#fff",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {preset.label}
+                              </span>
+                              {isSelected && <Check size={11} color="#FF9800" />}
+                            </div>
+                            <span style={{ fontSize: "0.58rem", color: "#9E9E9E", whiteSpace: "nowrap" }}>
+                              {preset.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom Link Input if toggled */}
+                    {homeComposerCustomUrlOpen && (
+                      <input
+                        type="text"
+                        value={homeComposerMediaUrl}
+                        onChange={(e) => {
+                          setHomeComposerMediaUrl(e.target.value);
+                          setHomeComposerSelectedPreset("");
+                          if (e.target.value.endsWith(".mp4")) {
+                            setHomeComposerMediaType("video");
+                          }
+                        }}
+                        placeholder="Paste video (.mp4) or image URL..."
+                        style={{
+                          width: "100%",
+                          fontSize: "0.75rem",
+                          padding: "6px 8px",
+                          background: "rgba(0,0,0,0.5)",
+                          border: "1px solid rgba(255,255,255,0.15)",
+                          borderRadius: "6px",
+                          color: "#fff",
+                        }}
+                      />
+                    )}
+
+                    {/* Live Preview of Attached Media */}
+                    {homeComposerMediaUrl && (
+                      <div
+                        style={{
+                          background: "#08090C",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          border: "1px solid rgba(255, 152, 0, 0.3)",
+                        }}
+                      >
+                        {homeComposerMediaType === "video" || homeComposerMediaUrl.endsWith(".mp4") ? (
+                          <div style={{ position: "relative", width: "100%", height: "110px", background: "#000" }}>
+                            <video
+                              src={homeComposerMediaUrl}
+                              controls
+                              playsInline
+                              muted
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "5px",
+                                left: "5px",
+                                background: "rgba(0,0,0,0.75)",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                fontSize: "0.6rem",
+                                color: "#FF9800",
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "3px",
+                              }}
+                            >
+                              <Video size={10} /> Audition Tape Attached
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ width: "100%", height: "100px", position: "relative" }}>
+                            <img
+                              src={homeComposerMediaUrl}
+                              alt="Look Test Preview"
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            padding: "5px 8px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            background: "#0D0E12",
+                            fontSize: "0.65rem",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "#9E9E9E",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              maxWidth: "200px",
+                            }}
+                          >
+                            {homeComposerMediaUrl}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHomeComposerMediaUrl("");
+                              setHomeComposerSelectedPreset("");
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#FB7185",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hashtags Chips */}
+                  <div>
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                      {homeComposerSuggestedTags.map((tag) => {
+                        const isActive = homeComposerTags.includes(tag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => handleToggleHomeTag(tag)}
+                            style={{
+                              background: isActive ? "rgba(255, 152, 0, 0.22)" : "rgba(255, 255, 255, 0.05)",
+                              border: isActive ? "1px solid #FF9800" : "1px solid rgba(255, 255, 255, 0.08)",
+                              color: isActive ? "#FF9800" : "#94A3B8",
+                              borderRadius: "6px",
+                              padding: "2px 6px",
+                              fontSize: "0.64rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      alignItems: "center",
+                      gap: "8px",
+                      paddingTop: "4px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setIsHomeComposerOpen(false)}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.06)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        color: "#9E9E9E",
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                        fontSize: "0.74rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                      disabled={isHomeSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePublishHomePost}
+                      style={{
+                        background: "linear-gradient(135deg, #FF9800 0%, #F59E0B 100%)",
+                        border: "none",
+                        color: "#08090C",
+                        padding: "7px 16px",
+                        borderRadius: "8px",
+                        fontSize: "0.76rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        boxShadow: "0 2px 10px rgba(255, 152, 0, 0.35)",
+                      }}
+                      disabled={isHomeSubmitting}
+                    >
+                      <Send size={13} />
+                      {isHomeSubmitting ? "Publishing..." : "Broadcast to Feed 🎬"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Feed Cards */}
               {feedPosts.map((post, postIndex) => (
@@ -4566,7 +5301,7 @@ export default function MobileAppSimulatorPage() {
         return (
           <div style={{ padding: "14px 14px 150px", display: "flex", flexDirection: "column", gap: "12px", minHeight: "100%" }}>
             {/* Top Header without any subtitle clutter */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexShrink: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
                   🔔 Notifications
@@ -4658,102 +5393,226 @@ export default function MobileAppSimulatorPage() {
               </div>
             </div>
 
-            {/* Category Filter Pills (Horizontal Scrollable Carousel without scrollbar line) */}
-            <div
-              className="no-scrollbar"
-              style={{
-                display: "flex",
-                gap: "6px",
-                overflowX: "auto",
-                padding: "4px 2px 8px",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                border: "none",
-                outline: "none",
-              }}
-            >
-              {notifCategories.map((cat) => {
-                const IconComp = cat.icon;
-                const isActive = notifCategoryFilter === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setNotifCategoryFilter(cat.id)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      padding: "5px 10px",
-                      borderRadius: "20px",
-                      background: isActive ? "linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.1) 100%)" : "rgba(255, 255, 255, 0.04)",
-                      border: isActive ? "1.5px solid #F59E0B" : "1px solid rgba(255, 255, 255, 0.08)",
-                      color: isActive ? "#F59E0B" : "#94A3B8",
-                      fontSize: "0.72rem",
-                      fontWeight: isActive ? 800 : 600,
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                      transition: "all 0.18s ease",
-                    }}
-                  >
-                    <IconComp size={12} />
-                    <span>{cat.label}</span>
-                    <span
+            {/* Category Filter Pills (Wrap or Horizontal Scroll with ALL text fully visible and NO clipping) */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
+                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Filter by Category ({notifCategories.length} Options)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setNotifCategoryViewMode(notifCategoryViewMode === "wrap" ? "scroll" : "wrap")}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    color: "#F59E0B",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                  title="Toggle between All Visible (Grid) and Horizontal Carousel"
+                >
+                  {notifCategoryViewMode === "wrap" ? "↔ Scroll View" : "☷ View All (Grid)"}
+                </button>
+              </div>
+
+              <div
+                className={notifCategoryViewMode === "scroll" ? "no-scrollbar" : ""}
+                style={{
+                  display: "flex",
+                  gap: "7px",
+                  flexWrap: notifCategoryViewMode === "wrap" ? "wrap" : "nowrap",
+                  overflowX: notifCategoryViewMode === "scroll" ? "auto" : "visible",
+                  overflowY: "visible",
+                  padding: "4px 2px 8px",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  border: "none",
+                  outline: "none",
+                  minHeight: "44px",
+                  alignItems: "center",
+                }}
+              >
+                {notifCategories.map((cat) => {
+                  const IconComp = cat.icon;
+                  const isActive = notifCategoryFilter === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      id={`mobile-notif-cat-${cat.id}`}
+                      onClick={() => setNotifCategoryFilter(cat.id)}
                       style={{
-                        background: isActive ? "#F59E0B" : "rgba(255, 255, 255, 0.1)",
-                        color: isActive ? "#08090C" : "#CBD5E1",
-                        fontSize: "0.62rem",
-                        fontWeight: 800,
-                        padding: "0 5px",
-                        borderRadius: "8px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "0 12px",
+                        height: "34px",
+                        minHeight: "34px",
+                        boxSizing: "border-box",
+                        borderRadius: "20px",
+                        background: isActive
+                          ? "linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(245, 158, 11, 0.12) 100%)"
+                          : "rgba(255, 255, 255, 0.05)",
+                        border: isActive ? "1.5px solid #F59E0B" : "1px solid rgba(255, 255, 255, 0.1)",
+                        color: isActive ? "#F59E0B" : "#CBD5E1",
+                        fontSize: "0.74rem",
+                        fontWeight: isActive ? 800 : 600,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
+                        transition: "all 0.18s ease",
+                        lineHeight: "1",
+                        overflow: "visible",
                       }}
                     >
-                      {cat.count}
-                    </span>
-                  </button>
-                );
-              })}
+                      <IconComp size={13} style={{ flexShrink: 0 }} />
+                      <span style={{ lineHeight: "1.2", display: "inline-block" }}>{cat.label}</span>
+                      <span
+                        style={{
+                          background: isActive ? "#F59E0B" : "rgba(255, 255, 255, 0.12)",
+                          color: isActive ? "#08090C" : "#E2E8F0",
+                          fontSize: "0.64rem",
+                          fontWeight: 800,
+                          padding: "0 6px",
+                          height: "18px",
+                          minWidth: "18px",
+                          borderRadius: "999px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          lineHeight: 1,
+                          boxSizing: "border-box",
+                          marginLeft: "2px",
+                        }}
+                      >
+                        {cat.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Quick Option Toggles Bar */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 2px 4px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "4px 2px 6px",
+                flexShrink: 0,
+                minHeight: "36px",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <button
                   type="button"
                   id="mobile-notif-filter-unread"
                   onClick={() => setNotifUnreadOnly(!notifUnreadOnly)}
                   style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    height: "30px",
+                    minHeight: "30px",
+                    padding: "0 12px",
+                    boxSizing: "border-box",
                     background: notifUnreadOnly ? "rgba(239, 68, 68, 0.22)" : "rgba(255, 255, 255, 0.05)",
                     border: notifUnreadOnly ? "1.5px solid #EF4444" : "1px solid rgba(255, 255, 255, 0.12)",
                     color: notifUnreadOnly ? "#EF4444" : "#CBD5E1",
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontSize: "0.68rem",
+                    borderRadius: "8px",
+                    fontSize: "0.72rem",
                     fontWeight: 700,
+                    lineHeight: "1",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                   }}
                 >
+                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: notifUnreadOnly ? "#EF4444" : "#94A3B8" }} />
                   Unread Only
+                  {unreadMobileNotifCount > 0 && (
+                    <span
+                      style={{
+                        background: notifUnreadOnly ? "#EF4444" : "rgba(239, 68, 68, 0.25)",
+                        color: notifUnreadOnly ? "#FFFFFF" : "#EF4444",
+                        fontSize: "0.62rem",
+                        fontWeight: 800,
+                        padding: "0 5px",
+                        height: "16px",
+                        minWidth: "16px",
+                        borderRadius: "999px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {unreadMobileNotifCount}
+                    </span>
+                  )}
                 </button>
+
                 <button
                   type="button"
                   id="mobile-notif-filter-urgent"
                   onClick={() => setNotifUrgentOnly(!notifUrgentOnly)}
                   style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    height: "30px",
+                    minHeight: "30px",
+                    padding: "0 12px",
+                    boxSizing: "border-box",
                     background: notifUrgentOnly ? "rgba(245, 158, 11, 0.22)" : "rgba(255, 255, 255, 0.05)",
                     border: notifUrgentOnly ? "1.5px solid #F59E0B" : "1px solid rgba(255, 255, 255, 0.12)",
                     color: notifUrgentOnly ? "#F59E0B" : "#CBD5E1",
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontSize: "0.68rem",
+                    borderRadius: "8px",
+                    fontSize: "0.72rem",
                     fontWeight: 700,
+                    lineHeight: "1",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                   }}
                 >
+                  <span>🚨</span>
                   Urgent Callbacks
+                </button>
+
+                <button
+                  type="button"
+                  id="mobile-notif-open-options-pill"
+                  onClick={() => setShowNotifPreferencesModal(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    height: "30px",
+                    minHeight: "30px",
+                    padding: "0 10px",
+                    boxSizing: "border-box",
+                    background: "rgba(245, 158, 11, 0.1)",
+                    border: "1px dashed rgba(245, 158, 11, 0.35)",
+                    color: "var(--accent-gold)",
+                    borderRadius: "8px",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    lineHeight: "1",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  title="Configure all notification & alert preferences"
+                >
+                  <SlidersHorizontal size={11} />
+                  Alert Options
                 </button>
               </div>
 
@@ -4769,13 +5628,15 @@ export default function MobileAppSimulatorPage() {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#94A3B8",
-                    fontSize: "0.65rem",
+                    color: "#F59E0B",
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
                     textDecoration: "underline",
                     cursor: "pointer",
+                    padding: "4px 6px",
                   }}
                 >
-                  Reset filters
+                  Reset all filters
                 </button>
               )}
             </div>
@@ -4788,8 +5649,9 @@ export default function MobileAppSimulatorPage() {
                 height: "1.5px",
                 background: "linear-gradient(90deg, rgba(245, 158, 11, 0.6) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(245, 158, 11, 0.6) 100%)",
                 boxShadow: "0 1px 3px rgba(0, 0, 0, 0.7)",
-                margin: "4px 0 6px",
+                margin: "6px 0 8px",
                 borderRadius: "1px",
+                flexShrink: 0,
               }}
             />
 
