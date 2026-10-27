@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, users, media
+from app.routers import auth, users, media, production_houses, opportunities
 from app.utils.s3 import ensure_bucket_exists
 
 settings = get_settings()
@@ -23,6 +23,33 @@ async def lifespan(app: FastAPI):
     # Shutdown hooks here if needed
 
 
+tags_metadata = [
+    {
+        "name": "Auth & Identity",
+        "description": "User registration, login, JWT token management, and OTP authentication.",
+    },
+    {
+        "name": "Profile & Portfolio",
+        "description": "User profile management and profile details.",
+    },
+    {
+        "name": "Production Houses & Projects",
+        "description": "Production company profiles and film/media project management.",
+    },
+    {
+        "name": "Opportunities & Applications",
+        "description": "Casting calls, job postings, and talent applications management.",
+    },
+    {
+        "name": "Media Service",
+        "description": "Direct S3/MinIO media uploads and asset management.",
+    },
+    {
+        "name": "Health",
+        "description": "Service health checks.",
+    },
+]
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="Backend API for CineConnect User Portal — Connecting Film & Media Talent with Opportunities",
@@ -31,6 +58,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    openapi_tags=tags_metadata,
 )
 
 # CORS configuration
@@ -48,10 +76,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Phase 1 Routers
+# Include Routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(media.router, prefix="/api/v1")
+app.include_router(production_houses.router, prefix="/api/v1")
+app.include_router(opportunities.router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["Health"])

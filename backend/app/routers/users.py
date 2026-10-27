@@ -9,6 +9,8 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User, Profile
 from app.schemas.user import (
+    CurrentUserResponse,
+    UserProfileUpdate,
     ProfileUpdate,
     ProfileResponse,
     PublicProfileResponse,
@@ -31,43 +33,38 @@ router = APIRouter(prefix="/users", tags=["Profile & Portfolio"])
 
 # ---------- Current User Profile ----------
 
-@router.get("/me", response_model=dict, summary="Get current authenticated user profile with full details")
+@router.get("/me", response_model=CurrentUserResponse, summary="Get current authenticated user profile")
 async def get_my_profile(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
-    profile_data = await profile_service.get_full_profile(db, current_user.id)
-    if not profile_data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
-
-    user = profile_data["user"]
-    profile = profile_data["profile"]
-
-    return {
-        "id": user.id,
-        "email": user.email,
-        "phone": user.phone,
-        "auth_provider": user.auth_provider,
-        "email_verified": user.email_verified,
-        "phone_verified": user.phone_verified,
-        "identity_verified": user.identity_verified,
-        "profile": ProfileResponse.model_validate(profile) if profile else None,
-        "skills": profile_data["skills"],
-        "experiences": [ExperienceResponse.model_validate(e) for e in profile_data["experiences"]],
-        "portfolio": [PortfolioItemResponse.model_validate(p) for p in profile_data["portfolio_items"]],
-    }
+    """Retrieve the authenticated user's profile directly from public.users."""
+    return current_user
 
 
-@router.patch("/me", response_model=ProfileResponse, summary="Update basic profile information")
+@router.patch("/me", response_model=CurrentUserResponse, summary="Update basic profile information")
 async def update_my_profile(
-    data: ProfileUpdate,
+    data: UserProfileUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    profile = await profile_service.update_profile(
-        db, current_user.id, data.model_dump(exclude_unset=True)
-    )
-    return ProfileResponse.model_validate(profile)
+    """Update allowed profile fields directly in public.users."""
+    update_data = data.model_dump(exclude_unset=True)
+    if not update_data:
+        return current_user
+
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    try:
+        await db.commit()
+        await db.refresh(current_user)
+        return current_user
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update profile",
+        )
 
 
 @router.get("/me/completeness", response_model=CompletenessResponse, summary="Get profile completeness score and suggestions")

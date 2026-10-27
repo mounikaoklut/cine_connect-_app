@@ -22,17 +22,24 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), unique=True, nullable=True)
-    password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    auth_provider: Mapped[str] = mapped_column(String(20), default="email")
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    account_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    role: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    auth_provider: Mapped[str] = mapped_column(String(50), default="email")
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     identity_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    identity_doc_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    identity_doc_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
     # Relationships

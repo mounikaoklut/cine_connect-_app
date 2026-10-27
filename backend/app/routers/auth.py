@@ -42,7 +42,7 @@ async def register(
             user=UserBrief(
                 id=user.id,
                 email=user.email,
-                name=data.name,
+                name=user.full_name or data.name,
                 email_verified=user.email_verified,
                 phone_verified=user.phone_verified,
                 identity_verified=user.identity_verified,
@@ -65,7 +65,7 @@ async def login(
         user, access_token, refresh_token = await auth_service.login_with_email(
             db, email=data.email, password=data.password
         )
-        name = user.profile.name if user.profile else None
+        name = user.full_name if user.full_name else None
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -109,7 +109,7 @@ async def verify_otp(
         user, access_token, refresh_token = await auth_service.verify_otp_and_login(
             db, phone=data.phone, otp=data.otp
         )
-        name = user.profile.name if user.profile else None
+        name = user.full_name if user.full_name else None
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,

@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User, Profile
+from app.models.user import User
 from app.utils.security import (
     hash_password,
     verify_password,
@@ -37,19 +37,15 @@ async def register_with_email(
     if result.scalar_one_or_none():
         raise ValueError("Email already registered")
 
-    # Create user
+    # Create user with full_name
     user = User(
         email=email,
+        full_name=name,
         password_hash=hash_password(password),
         auth_provider="email",
     )
     db.add(user)
     await db.flush()  # Get the user.id
-
-    # Create empty profile with name
-    profile = Profile(user_id=user.id, name=name)
-    db.add(profile)
-    await db.flush()
 
     # Generate tokens
     access_token = create_access_token(user.id)
@@ -147,11 +143,6 @@ async def verify_otp_and_login(
             phone_verified=True,
         )
         db.add(user)
-        await db.flush()
-
-        # Create empty profile
-        profile = Profile(user_id=user.id)
-        db.add(profile)
         await db.flush()
     else:
         # Existing user — mark phone verified

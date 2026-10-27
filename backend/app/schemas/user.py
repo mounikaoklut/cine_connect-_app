@@ -7,20 +7,43 @@ from pydantic import BaseModel, Field
 
 
 # ---------- Profile ----------
-class ProfileUpdate(BaseModel):
-    """Fields that can be updated on a profile."""
-    name: str | None = None
+class UserProfileUpdate(BaseModel):
+    """Allowed fields for updating user profile in public.users."""
+    full_name: str | None = Field(None, min_length=1, max_length=255)
+    role: str | None = Field(None, min_length=1, max_length=100)
+    location: str | None = Field(None, min_length=1, max_length=255)
+    bio: str | None = Field(None, max_length=2000)
+    experience_years: int | None = Field(None, ge=0, le=70)
+
+    model_config = {
+        "extra": "forbid"
+    }
+
+
+# Backwards-compatible alias
+ProfileUpdate = UserProfileUpdate
+
+class CurrentUserResponse(BaseModel):
+    """Safe response schema for the authenticated current user."""
+    id: UUID
+    email: str
+    full_name: str | None = None
+    account_type: str | None = None
+    role: str | None = None
+    location: str | None = None
     bio: str | None = None
-    photo_url: str | None = None
-    date_of_birth: date | None = None
-    gender: str | None = None
-    primary_craft: str | None = None
-    secondary_crafts: list[str] | None = None
-    city: str | None = None
-    state: str | None = None
-    travel_radius_km: int | None = None
-    languages: list[dict] | None = None  # [{lang: str, fluency: str}]
-    availability: dict | None = None
+    experience_years: int | None = None
+    is_verified: bool = False
+    phone: str | None = None
+    auth_provider: str = "email"
+    email_verified: bool = False
+    phone_verified: bool = False
+    identity_verified: bool = False
+    identity_doc_url: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class ProfileResponse(BaseModel):
