@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import LandingPage from "@/components/LandingPage";
 import HomePage from "@/components/HomePage";
@@ -30,8 +31,22 @@ import {
 import { X, Clapperboard, AlertCircle } from "lucide-react";
 
 export default function CineConnectMasterPage() {
+  const router = useRouter();
+
   // Master View: Landing Page vs Home Studio Hub vs My Profile
   const [currentView, setCurrentView] = useState<"landing" | "home" | "profile">("landing");
+
+  const handleWheelNavigate = (path: string) => {
+    if (path === "/home" || path === "/") {
+      setCurrentView("home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (path === "/profile") {
+      setCurrentView("profile");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      router.push(path);
+    }
+  };
 
   // Modals state
   const [activeAudition, setActiveAudition] = useState<CastingCall | null>(null);
@@ -41,16 +56,13 @@ export default function CineConnectMasterPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // Auth Form State
-  const [accountTypeTab, setAccountTypeTab] = useState<"talent" | "production">("talent");
+  // Auth Modal State
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
-  const [authCompanyName, setAuthCompanyName] = useState("");
-  const [authPhone, setAuthPhone] = useState("+91 98765 43210");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [authSuccessMsg, setAuthSuccessMsg] = useState("");
 
   // Feed & Pipeline State
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>(HOME_FEED_POSTS);
@@ -74,7 +86,7 @@ export default function CineConnectMasterPage() {
     profile: {
       name: "Kabir Mehra",
       bio: "Method actor and theater artist with 8+ years across independent cinema, OTT thrillers, and commercial campaigns. Trained at the National School of Drama.",
-      photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+      photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
       primary_craft: "Actor",
       secondary_crafts: ["Voice Over Artist", "Action / Stunts"],
       city: "Mumbai",
@@ -131,7 +143,7 @@ export default function CineConnectMasterPage() {
       {
         id: "port-1",
         type: "showreel",
-        s3_url: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
+        s3_url: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
         title: "Dramatic Showreel (2025 - 2026)",
         description: "Compilation of intense monologue and dramatic scenes from OTT thriller series.",
         is_public: true,
@@ -192,31 +204,109 @@ export default function CineConnectMasterPage() {
     loadBackendData();
   }, []);
 
+  // Update profile
+  const handleUpdateProfile = (updated: { name: string; bio: string; primary_craft: string; city: string }) => {
+    setUserData((prev) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        name: updated.name,
+        bio: updated.bio,
+        primary_craft: updated.primary_craft,
+        city: updated.city,
+      },
+    }));
+  };
+
+  // Add portfolio
+  const handleAddPortfolio = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newItem = {
+      id: "port-" + Date.now(),
+      type: newPortType,
+      s3_url: newPortUrl || "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
+      title: newPortTitle || "Showcase Media",
+      description: newPortDesc,
+      is_public: true,
+      sort_order: userData.portfolio.length,
+    };
+
+    setUserData((prev) => ({
+      ...prev,
+      portfolio: [newItem, ...prev.portfolio],
+    }));
+
+    setShowUploadModal(false);
+    setNewPortTitle("");
+    setNewPortDesc("");
+    setNewPortUrl("");
+  };
+
+  // Delete portfolio
+  const handleDeletePortfolio = (id: string) => {
+    setUserData((prev) => ({
+      ...prev,
+      portfolio: prev.portfolio.filter((p) => p.id !== id),
+    }));
+  };
+
+  // Like feed post
+  const handleToggleLikePost = (postId: string) => {
+    setFeedPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const isLiked = !p.isLiked;
+          return {
+            ...p,
+            isLiked,
+            likes: isLiked ? p.likes + 1 : p.likes - 1,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  // Post Created
+  const handlePostCreated = (post: FeedPost) => {
+    setFeedPosts([post, ...feedPosts]);
+  };
+
+  // Audition Submitted Success
+  const handleAuditionSubmitted = (castingId: string, roleName: string, productionHouse: string) => {
+    const newPipelineItem: ApplicationPipelineItem = {
+      id: "app-" + Date.now(),
+      projectTitle: roleName,
+      roleTitle: roleName,
+      productionHouse,
+      appliedDate: "Just now",
+      stage: "Applied",
+      progressPercent: 25,
+      nextStepNote: "Application received by casting team. Video self-tape under review.",
+    };
+    setPipelineItems([newPipelineItem, ...pipelineItems]);
+  };
+
+  // Auth Submit
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError("");
-    setAuthSuccessMsg("");
 
     try {
       if (authMode === "register") {
-        if (accountTypeTab === "talent") {
-          await ApiClient.registerTalent({
-            email: authEmail,
-            password: authPassword,
-            name: authName,
-            phone: authPhone,
-          });
-        } else {
-          await ApiClient.registerProduction({
-            company_name: authCompanyName,
-            email: authEmail,
-            phone: authPhone,
-            password: authPassword,
-          });
-        }
-        setAuthSuccessMsg("Registration successful! Please sign in with your email and password.");
-        setAuthMode("login");
+        const res = await ApiClient.register({
+          email: authEmail,
+          password: authPassword,
+          name: authName,
+        });
+        setUserData((prev) => ({
+          ...prev,
+          id: res.user.id,
+          email: res.user.email,
+          profile: { ...prev.profile, name: res.user.name },
+        }));
+        setShowAuthModal(false);
       } else {
         const res = await ApiClient.login({
           email: authEmail,
@@ -226,384 +316,99 @@ export default function CineConnectMasterPage() {
           ...prev,
           id: res.user.id,
           email: res.user.email,
-          phone: res.user.phone || prev.phone,
           profile: { ...prev.profile, name: res.user.name },
         }));
         setShowAuthModal(false);
       }
     } catch (err: any) {
-      setAuthError(err.message || "Authentication failed");
+      setAuthError(err.message || "Authentication failed. (Running with offline preview session)");
+      setTimeout(() => setShowAuthModal(false), 800);
     } finally {
       setAuthLoading(false);
     }
   };
 
-  const handleSelectPortal = (portal: "talent" | "production", mode: "login" | "signup" = "login") => {
-    setSelectedPortal(portal);
-    setCurrentView(mode);
-  };
-
   return (
-    <>
-      {/* ===================== REALISTIC PHONE-SIZED APPLICATION VIEWPORT ===================== */}
-      {/* On desktop browsers: phone frame preview with status bar, notch, and dark backdrop */}
-      {/* On actual mobile devices: clean responsive full-bleed display without nested frames */}
-      <PhoneFrame>
-        {currentView === "landing" ? (
-          /* =============================================================== */
-          /* LANDING PAGE (WELCOME & PORTAL SELECTION)                        */
-          /* =============================================================== */
-          <LandingScreen
-            onSelectPortal={handleSelectPortal}
-            onLogin={() => setCurrentView("login")}
-            onOpenTerms={handleOpenTerms}
-          />
-        ) : (
-          /* =============================================================== */
-          /* AUTHENTICATION (TALENT / PRODUCTION LOGIN & SIGNUP)             */
-          /* =============================================================== */
-          <div
-            className="no-scrollbar"
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              overflowY: "auto",
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
+      {/* ===================== UNIFIED NAVIGATION ===================== */}
+      <Navigation
+        currentView={currentView}
+        onSelectView={(v) => {
+          setCurrentView(v);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        userData={userData}
+        completeness={completeness}
+        onOpenAuthModal={() => setShowAuthModal(true)}
+        onOpenUploadModal={() => setShowUploadModal(true)}
+      />
+
+      {/* ===================== VIEW ROUTER ===================== */}
+      {currentView === "landing" && (
+        <>
+          <LandingPage
+            onEnterStudioHub={() => {
+              setCurrentView("home");
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-          >
-            <ClapperboardAuthCard
-              initialScreen={currentView}
-              onBack={() => setCurrentView("landing")}
-              onSuccess={() => {
-                // Post-login destination left unimplemented; teammates are developing post-login pages separately
+            onOpenAuditionModal={(c) => setActiveAudition(c)}
+            onOpenShowreelModal={(t) => setActiveShowreel(t)}
+            onOpenPitchModal={(p) => setActivePitch(p)}
+            onOpenAuthModal={() => setShowAuthModal(true)}
+          />
+          <CurvedWheelNav
+            currentActivePath="/home"
+            onNavigate={handleWheelNavigate}
+          />
+        </>
+      )}
+
+      {currentView === "home" && (
+        <div style={{ display: "flex", minHeight: "calc(100vh - 72px)", background: "#0D0E12" }}>
+          <CurvedWheelNav
+            currentActivePath="/home"
+            onNavigate={handleWheelNavigate}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <HomePage
+              onSwitchToLanding={() => {
+                setCurrentView("landing");
+                window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              onOpenTerms={handleOpenTerms}
+              onSwitchToProfile={() => {
+                setCurrentView("profile");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              onOpenAuditionModal={(c) => setActiveAudition(c)}
+              onOpenShowreelModal={(t) => setActiveShowreel(t)}
+              onOpenPitchModal={(p) => setActivePitch(p)}
+              onOpenCreatePost={() => setShowCreatePost(true)}
+              feedPosts={feedPosts}
+              onToggleLikePost={handleToggleLikePost}
+              pipelineItems={pipelineItems}
             />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* TAB 2: PORTFOLIO & MEDIA */}
-        {activeTab === "portfolio" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-              <div>
-                <h2 style={{ fontSize: "1.5rem", fontWeight: 800 }}>Showreels & Work Samples</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                  High-definition reels, audition clips, production stills, and verified resume
-                </p>
-              </div>
-              <button onClick={() => setShowUploadModal(true)} className="btn-primary">
-                <Plus size={16} /> Add Media / Showreel
-              </button>
-            </div>
-
-            {/* Media Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
-              {userData.portfolio.map((item) => (
-                <div key={item.id} className="glass-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                  {/* Media Preview Box */}
-                  <div style={{ position: "relative", width: "100%", height: "200px", background: "#05070a" }}>
-                    {item.type === "photo" || item.type === "showreel" ? (
-                      <img
-                        src={item.s3_url}
-                        alt={item.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexDirection: "column",
-                          gap: "8px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        <FileText size={48} color="var(--accent-gold)" />
-                        <span style={{ fontSize: "0.85rem" }}>Document / PDF</span>
-                      </div>
-                    )}
-
-                    {/* Overlay Type Badge */}
-                    <div style={{ position: "absolute", top: "12px", left: "12px" }}>
-                      <span className="badge badge-gold">
-                        {item.type === "showreel" && <Play size={12} fill="#fbbf24" />}
-                        {item.type === "photo" && <ImageIcon size={12} />}
-                        {item.type === "resume" && <FileText size={12} />}
-                        {item.type.toUpperCase()}
-                      </span>
-                    </div>
-
-                    {/* Quick Delete */}
-                    <button
-                      onClick={() => handleDeletePortfolio(item.id)}
-                      title="Remove media"
-                      style={{
-                        position: "absolute",
-                        top: "12px",
-                        right: "12px",
-                        background: "rgba(0, 0, 0, 0.6)",
-                        border: "none",
-                        color: "#ef4444",
-                        padding: "6px",
-                        borderRadius: "50%",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-
-                  {/* Caption & Metadata */}
-                  <div style={{ padding: "16px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div>
-                      <h4 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "6px" }}>{item.title}</h4>
-                      <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4" }}>
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                        {item.is_public ? "Public on profile" : "Private"}
-                      </span>
-                      <a
-                        href={item.s3_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-ghost"
-                        style={{ fontSize: "0.8rem", color: "var(--accent-gold)" }}
-                      >
-                        View Full <ExternalLink size={13} />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {currentView === "profile" && (
+        <div style={{ display: "flex", minHeight: "calc(100vh - 72px)", background: "#0D0E12" }}>
+          <CurvedWheelNav
+            currentActivePath="/profile"
+            onNavigate={handleWheelNavigate}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <ProfilePortal
+              userData={userData}
+              completeness={completeness}
+              onUpdateProfile={handleUpdateProfile}
+              onAddPortfolio={() => {}}
+              onDeletePortfolio={handleDeletePortfolio}
+              onOpenUploadModal={() => setShowUploadModal(true)}
+            />
           </div>
-        )}
-
-        {/* TAB 3: CREDITS & EXPERIENCE TIMELINE */}
-        {activeTab === "experience" && (
-          <div className="glass-panel" style={{ padding: "36px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-              <div>
-                <h2 style={{ fontSize: "1.5rem", fontWeight: 800 }}>Production Credits & Experience</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                  Verified work with studios, OTT platforms, feature films, and theatre houses
-                </p>
-              </div>
-            </div>
-
-            {/* Timeline Tree */}
-            <div style={{ position: "relative", paddingLeft: "32px" }}>
-              {/* Vertical Glowing Line */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: "10px",
-                  top: "10px",
-                  bottom: "10px",
-                  width: "2px",
-                  background: "linear-gradient(to bottom, var(--accent-gold), rgba(245, 158, 11, 0.1))",
-                }}
-              />
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-                {userData.experiences.map((exp) => (
-                  <div key={exp.id} style={{ position: "relative" }}>
-                    {/* Circle Node */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: "-31px",
-                        top: "4px",
-                        width: "18px",
-                        height: "18px",
-                        borderRadius: "50%",
-                        background: "var(--accent-gold)",
-                        boxShadow: "0 0 12px var(--accent-gold)",
-                        border: "3px solid #080a0f",
-                      }}
-                    />
-
-                    <div className="glass-card" style={{ padding: "20px 24px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "8px" }}>
-                        <div>
-                          <h3 style={{ fontSize: "1.2rem", fontWeight: 700 }}>{exp.title}</h3>
-                          <div style={{ color: "var(--accent-gold)", fontWeight: 600, fontSize: "0.95rem" }}>
-                            {exp.company}
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span className="badge badge-cyan">{exp.role_type}</span>
-                          <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                            {exp.start_date} – {exp.end_date || "Present"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.5" }}>
-                        {exp.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: IDENTITY VERIFICATION */}
-        {activeTab === "verification" && (
-          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-            <div className="glass-panel" style={{ padding: "36px" }}>
-              <div style={{ textAlign: "center", marginBottom: "28px" }}>
-                <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    borderRadius: "50%",
-                    background: "rgba(16, 185, 129, 0.15)",
-                    border: "1px solid rgba(16, 185, 129, 0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 16px",
-                  }}
-                >
-                  <ShieldCheck size={32} color="#10b981" />
-                </div>
-                <h2 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Identity & Government ID Verification</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", maxWidth: "540px", margin: "8px auto 0" }}>
-                  Verified talent get up to 4x more audition callbacks and a trusted blue badge on CineConnect.
-                </p>
-              </div>
-
-              {/* Status Box */}
-              <div
-                style={{
-                  background: "rgba(16, 185, 129, 0.08)",
-                  border: "1px solid rgba(16, 185, 129, 0.25)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "16px 20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "28px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <CheckCircle2 size={24} color="#10b981" />
-                  <div>
-                    <div style={{ fontWeight: 700, color: "#34d399" }}>Aadhaar & Passport Verified</div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                      Encrypted and protected under India DPDP Act.
-                    </div>
-                  </div>
-                </div>
-                <span className="badge badge-emerald">Verified Active</span>
-              </div>
-
-              {/* Upload New Document Box */}
-              <div
-                style={{
-                  border: "2px dashed var(--border-subtle)",
-                  borderRadius: "var(--radius-lg)",
-                  padding: "40px",
-                  textAlign: "center",
-                  background: "rgba(16, 20, 30, 0.4)",
-                  cursor: "pointer",
-                }}
-                onClick={() => alert("Government ID upload dialog. In production, uploads are encrypted into a private S3 bucket.")}
-              >
-                <Upload size={36} color="var(--accent-gold)" style={{ margin: "0 auto 12px" }} />
-                <h4 style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "6px" }}>Upload / Replace Government ID</h4>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  Supports Passport, Aadhaar, PAN card, or Driver's License (PDF, JPG, PNG up to 25MB)
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* ===================== MODAL: EDIT PROFILE ===================== */}
-      {showEditModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-            padding: "20px",
-          }}
-        >
-          <div className="glass-panel" style={{ width: "100%", maxWidth: "560px", padding: "32px", position: "relative" }}>
-            <button
-              onClick={() => setShowEditModal(false)}
-              style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "20px" }}>Edit Profile</h3>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Full Name</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Primary Craft</label>
-                <select
-                  className="input-field"
-                  value={editCraft}
-                  onChange={(e) => setEditCraft(e.target.value)}
-                >
-                  <option value="Actor">Actor</option>
-                  <option value="Cinematographer (DOP)">Cinematographer (DOP)</option>
-                  <option value="Film Editor">Film Editor</option>
-                  <option value="Director">Director</option>
-                  <option value="Sound Designer">Sound Designer</option>
-                  <option value="Screenwriter">Screenwriter</option>
-                  <option value="Playback Singer">Playback Singer</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>City / Location</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editCity}
-                  onChange={(e) => setEditCity(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>Professional Bio</label>
-                <textarea
-                  rows={4}
-                  className="input-field"
-                  value={editBio}
-                  onChange={(e) => setEditBio(e.target.value)}
-                />
-              </div>
+        </div>
+      )}
 
       {/* ===================== MODALS ===================== */}
       <AuditionModal
@@ -734,20 +539,12 @@ export default function CineConnectMasterPage() {
 
       {/* ===================== MODAL: SIGN IN / REGISTER ===================== */}
       {showAuthModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-            padding: "20px",
-          }}
-        >
-          <div className="glass-panel" style={{ width: "100%", maxWidth: "460px", padding: "32px", position: "relative" }}>
+        <div className="modal-backdrop" onClick={() => setShowAuthModal(false)}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "440px", padding: "32px", position: "relative" }}
+          >
             <button
               onClick={() => setShowAuthModal(false)}
               style={{
@@ -779,88 +576,12 @@ export default function CineConnectMasterPage() {
                 <Clapperboard size={24} color="#000" />
               </div>
               <h3 style={{ fontSize: "1.4rem", fontWeight: 800 }}>
-                {authMode === "register"
-                  ? accountTypeTab === "talent"
-                    ? "Talent Sign Up"
-                    : "Production House Sign Up"
-                  : "Welcome Back"}
+                {authMode === "register" ? "Create Talent Account" : "Welcome Back"}
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-                {authMode === "register"
-                  ? "Connect film & media talent with top industry opportunities"
-                  : "Sign in with your email address and password"}
+                Connect directly with casting directors and studios
               </p>
             </div>
-
-            {/* Account Type Toggle on Register Mode */}
-            {authMode === "register" && (
-              <div
-                style={{
-                  display: "flex",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "4px",
-                  marginBottom: "16px",
-                  gap: "4px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setAccountTypeTab("talent")}
-                  style={{
-                    flex: 1,
-                    padding: "8px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: accountTypeTab === "talent" ? "var(--accent-gold)" : "transparent",
-                    color: accountTypeTab === "talent" ? "#000" : "var(--text-secondary)",
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Talent Account
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountTypeTab("production")}
-                  style={{
-                    flex: 1,
-                    padding: "8px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "none",
-                    background: accountTypeTab === "production" ? "var(--accent-gold)" : "transparent",
-                    color: accountTypeTab === "production" ? "#000" : "var(--text-secondary)",
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Production House
-                </button>
-              </div>
-            )}
-
-            {authSuccessMsg && (
-              <div
-                style={{
-                  background: "rgba(34, 197, 94, 0.15)",
-                  border: "1px solid rgba(34, 197, 94, 0.3)",
-                  color: "#86efac",
-                  padding: "10px 14px",
-                  borderRadius: "var(--radius-md)",
-                  fontSize: "0.85rem",
-                  marginBottom: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <CheckCircle2 size={16} /> {authSuccessMsg}
-              </div>
-            )}
 
             {authError && (
               <div
@@ -882,7 +603,7 @@ export default function CineConnectMasterPage() {
             )}
 
             <form onSubmit={handleAuthSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {authMode === "register" && accountTypeTab === "talent" && (
+              {authMode === "register" && (
                 <div>
                   <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>
                     Full Name
@@ -894,20 +615,6 @@ export default function CineConnectMasterPage() {
                     className="input-field"
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {authMode === "register" && accountTypeTab === "production" && (
-                <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Production House Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Dharma Productions"
-                    className="input-field"
-                    value={authCompanyName}
-                    onChange={(e) => setAuthCompanyName(e.target.value)}
                   />
                 </div>
               )}
@@ -926,20 +633,6 @@ export default function CineConnectMasterPage() {
                 />
               </div>
 
-              {authMode === "register" && (
-                <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>Mobile Number</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    className="input-field"
-                    value={authPhone}
-                    onChange={(e) => setAuthPhone(e.target.value)}
-                  />
-                </div>
-              )}
-
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "4px" }}>
                   Password
@@ -954,14 +647,13 @@ export default function CineConnectMasterPage() {
                 />
               </div>
 
-              <button type="submit" disabled={authLoading} className="btn-primary" style={{ width: "100%", marginTop: "8px" }}>
-                {authLoading
-                  ? "Authenticating..."
-                  : authMode === "register"
-                  ? accountTypeTab === "talent"
-                    ? "Sign Up as Talent"
-                    : "Register Production House"
-                  : "Sign In"}
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="btn-primary"
+                style={{ width: "100%", marginTop: "8px" }}
+              >
+                {authLoading ? "Authenticating..." : authMode === "register" ? "Sign Up & Build Profile" : "Sign In"}
               </button>
             </form>
 
@@ -970,11 +662,7 @@ export default function CineConnectMasterPage() {
                 <span>
                   Already have an account?{" "}
                   <button
-                    onClick={() => {
-                      setAuthMode("login");
-                      setAuthError("");
-                      setAuthSuccessMsg("");
-                    }}
+                    onClick={() => setAuthMode("login")}
                     style={{ background: "none", border: "none", color: "var(--accent-gold)", fontWeight: 700, cursor: "pointer" }}
                   >
                     Sign In
@@ -984,11 +672,7 @@ export default function CineConnectMasterPage() {
                 <span>
                   New to CineConnect?{" "}
                   <button
-                    onClick={() => {
-                      setAuthMode("register");
-                      setAuthError("");
-                      setAuthSuccessMsg("");
-                    }}
+                    onClick={() => setAuthMode("register")}
                     style={{ background: "none", border: "none", color: "var(--accent-gold)", fontWeight: 700, cursor: "pointer" }}
                   >
                     Create Account

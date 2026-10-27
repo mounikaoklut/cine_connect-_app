@@ -1,7 +1,8 @@
 """CineConnect User Portal - Backend FastAPI Application."""
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+import logging
+from fastapi import FastAPI, Depends, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,9 +19,14 @@ from app.routers import (
     social,
     messages,
     collaborations,
+    chat,
+    notifications,
+    settings as app_settings,
 )
+from app.routers.notifications import websocket_notifications_endpoint
 from app.utils.s3 import ensure_bucket_exists
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
@@ -115,6 +121,15 @@ app.include_router(collaborations.router, prefix="/api/v1")
 app.include_router(opportunities.router, prefix="/api/v1")
 app.include_router(social.router, prefix="/api/v1")
 app.include_router(messages.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(app_settings.router, prefix="/api/v1")
+
+
+@app.websocket("/ws/notifications/{user_id}")
+async def ws_notifications_root(websocket: WebSocket, user_id: str):
+    """Direct root WebSocket endpoint for notifications."""
+    await websocket_notifications_endpoint(websocket, user_id)
 
 
 @app.get("/health", tags=["Health"])
