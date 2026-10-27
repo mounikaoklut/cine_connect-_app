@@ -56,7 +56,6 @@ import ShowreelModal from "@/components/ShowreelModal";
 import PitchModal from "@/components/PitchModal";
 import CreatePostModal from "@/components/CreatePostModal";
 import { InstagramDmIcon } from "@/components/Navigation";
-import InstagramStoriesBar from "@/components/feed/InstagramStoriesBar";
 
 export default function MobileAppSimulatorPage() {
   const [activeTab, setActiveTab] = useState<"stream" | "reels" | "auditions" | "messages" | "notifications" | "profile" | "settings" | "talent" | "pitches" | "pipeline">("stream");

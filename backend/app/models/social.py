@@ -120,3 +120,68 @@ class Comment(Base):
     parent: Mapped[Optional["Comment"]] = relationship(
         back_populates="replies", remote_side="Comment.id"
     )
+
+
+class Connection(Base):
+    """User connection/follow relationship mapped to connections."""
+    __tablename__ = "connections"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    follower_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    following_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    status: Mapped[Optional[str]] = mapped_column(
+        String(50), default="pending", nullable=True
+    )
+    created_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=True
+    )
+
+
+class Interaction(Base):
+    """Post like or comment interaction mapped to interactions."""
+    __tablename__ = "interactions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    post_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=True
+    )
+    type: Mapped[Optional[str]] = mapped_column(
+        String(50), default="like", nullable=True
+    )
+    comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class Collaboration(Base):
+    """Project collaboration invitation mapped to collaborations."""
+    __tablename__ = "collaborations"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True
+    )
+    talent_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    status: Mapped[Optional[str]] = mapped_column(
+        String(50), default="invited", nullable=True
+    )
+    invited_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=True
+    )
+
+
+# Re-export Message from chat model for backward compatibility
+from app.models.chat import Message
