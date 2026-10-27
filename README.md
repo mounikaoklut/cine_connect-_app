@@ -54,6 +54,13 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 5. Run Mobile App (Flutter for Android & iOS)
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
 ---
 
 ## 🧪 Running Tests
