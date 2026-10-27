@@ -3,7 +3,8 @@
 from app.models.user import User, Profile, Skill, UserSkill, Experience, PortfolioItem, PortfolioMedia
 from app.models.production_house import ProductionHouse, Project
 from app.models.opportunity import Opportunity, Application
-from app.models.social import Connection, Post, Interaction, Collaboration, Message
+from app.models.social import Post, Comment, Like, Follow, SavedPost
+from app.models.chat import Conversation, Message, Notification
 
 __all__ = [
     "User",
@@ -17,9 +18,12 @@ __all__ = [
     "Project",
     "Opportunity",
     "Application",
-    "Connection",
     "Post",
-    "Interaction",
-    "Collaboration",
+    "Comment",
+    "Like",
+    "Follow",
+    "SavedPost",
+    "Conversation",
     "Message",
+    "Notification",
 ]
