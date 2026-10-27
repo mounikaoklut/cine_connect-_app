@@ -30,7 +30,7 @@ export default function DedicatedHomePage() {
       name: "Kabir Mehra",
       primary_craft: "Actor",
       city: "Mumbai",
-      photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+      photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
     },
     skills: [],
     experiences: [],

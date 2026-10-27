@@ -249,7 +249,7 @@ export default function LandingPage({
               }}
             >
               <img
-                src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1600&auto=format&fit=crop&q=80"
+                src="https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=1600&auto=format&fit=crop&q=80"
                 alt="Cinema Showreel"
                 style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.65 }}
               />
@@ -328,7 +328,7 @@ export default function LandingPage({
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80"
+                    src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80"
                     alt="Kabir Mehra"
                     style={{ width: "42px", height: "42px", borderRadius: "50%", border: "2px solid var(--accent-gold)" }}
                   />

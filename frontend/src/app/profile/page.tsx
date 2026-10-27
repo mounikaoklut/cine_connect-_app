@@ -18,7 +18,7 @@ export default function ProfilePage() {
     profile: {
       name: "Kabir Mehra",
       bio: "Method actor and theater artist with 8+ years across independent cinema, OTT thrillers, and commercial campaigns. Trained at the National School of Drama.",
-      photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+      photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
       primary_craft: "Actor",
       secondary_crafts: ["Voice Over Artist", "Action / Stunts"],
       city: "Mumbai",

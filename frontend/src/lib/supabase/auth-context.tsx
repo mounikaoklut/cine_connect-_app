@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
-      supabase.auth.getSession().then(({ data: { session }, error }) => {
+      supabase.auth.getSession().then(({ data: { session }, error }: { data: { session: any }; error: any }) => {
         if (session?.user && !error) {
           const meta = session.user.user_metadata || {};
           const detectedRole: PortalType = meta.role === "production" ? "production" : "talent";
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
         if (session?.user) {
           const meta = session.user.user_metadata || {};
           const detectedRole: PortalType = meta.role === "production" ? "production" : "talent";

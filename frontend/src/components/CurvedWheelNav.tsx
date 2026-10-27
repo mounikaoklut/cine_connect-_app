@@ -1,58 +1,43 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
+import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
+  Search,
   Clapperboard,
   MessageSquare,
   Bell,
   UserRound,
   Settings,
-  FileText,
-  Layers,
   LucideIcon,
 } from "lucide-react";
 
-export interface NavPairItem {
+export interface NavItem {
   id: string;
   label: string;
+  subtitle: string;
   path: string;
   icon: LucideIcon;
 }
 
-export interface NavSet {
-  id: number;
-  name: string;
-  primary: NavPairItem;
-  companion: NavPairItem;
-}
+export const NAVIGATION_ITEMS: NavItem[] = [
+  { id: "home", label: "Home", subtitle: "Studio Feed & Stream", path: "/home", icon: Home },
+  { id: "search", label: "Search", subtitle: "Find Talent & Castings", path: "/search", icon: Search },
+  { id: "opportunities", label: "Opportunities", subtitle: "Auditions & Roles", path: "/opportunities", icon: Clapperboard },
+  { id: "notifications", label: "Notifications", subtitle: "Callbacks & Match", path: "/notifications", icon: Bell },
+  { id: "profile", label: "Profile", subtitle: "Showreels & Bio", path: "/profile", icon: UserRound },
+  { id: "messages", label: "Messages", subtitle: "Production DMs", path: "/messages", icon: MessageSquare },
+  { id: "settings", label: "Settings", subtitle: "App & Security", path: "/settings", icon: Settings },
+];
 
-export const NAVIGATION_SETS: NavSet[] = [
+// Preserved for backward-compatibility if referenced elsewhere
+export const NAVIGATION_SETS = [
   {
     id: 0,
     name: "Set A",
     primary: { id: "home", label: "Home", path: "/home", icon: Home },
     companion: { id: "opportunities", label: "Opportunities", path: "/opportunities", icon: Clapperboard },
-  },
-  {
-    id: 1,
-    name: "Set B",
-    primary: { id: "messages", label: "Messages", path: "/messages", icon: MessageSquare },
-    companion: { id: "applications", label: "My Applications", path: "/applications", icon: FileText },
-  },
-  {
-    id: 2,
-    name: "Set C",
-    primary: { id: "profile", label: "Profile", path: "/profile", icon: UserRound },
-    companion: { id: "settings", label: "Settings", path: "/settings", icon: Settings },
-  },
-  {
-    id: 3,
-    name: "Set D",
-    primary: { id: "portfolio", label: "Media Vault", path: "/portfolio", icon: Layers },
-    companion: { id: "notifications", label: "Notifications", path: "/portfolio", icon: Bell },
   },
 ];
 
@@ -60,72 +45,22 @@ export interface CurvedWheelNavProps {
   currentActivePath?: string;
   onNavigate?: (path: string) => void;
   className?: string;
+  unreadMessagesCount?: number;
+  unreadNotificationsCount?: number;
 }
 
 export default function CurvedWheelNav({
   currentActivePath,
   onNavigate,
   className = "",
+  unreadMessagesCount = 2,
+  unreadNotificationsCount = 5,
 }: CurvedWheelNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const activePath = currentActivePath || pathname || "/home";
 
-  // Identify which set contains activePath
-  const getSetIndex = useCallback((path: string): number => {
-    const cleanPath = path === "/" ? "/home" : path;
-    const found = NAVIGATION_SETS.find(
-      (s) => s.primary.path === cleanPath || s.companion.path === cleanPath
-    );
-    return found ? found.id : 0;
-  }, []);
-
-  const [currentSetIndex, setCurrentSetIndex] = useState(() => getSetIndex(activePath));
-  const [dragOffset, setDragOffset] = useState(0);
-  const [wheelRotation, setWheelRotation] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const startXRef = useRef(0);
-  const startYRef = useRef(0);
-  const dragStartTimeRef = useRef(0);
-  const hasSwipedRef = useRef(false);
-  const lastAngleRef = useRef<number | null>(null);
-  const rotaryAccumulatorRef = useRef(0);
-  const wheelCooldownRef = useRef(0);
-  const navRef = useRef<HTMLElement | null>(null);
-
-  const rotateTo = useCallback(
-    (index: number) => {
-      let next = ((index % NAVIGATION_SETS.length) + NAVIGATION_SETS.length) % NAVIGATION_SETS.length;
-      setCurrentSetIndex(next);
-
-      const targetSet = NAVIGATION_SETS[next];
-      const cleanPath = activePath === "/" ? "/home" : activePath;
-      if (
-        cleanPath !== targetSet.primary.path &&
-        cleanPath !== targetSet.companion.path
-      ) {
-        if (onNavigate) {
-          onNavigate(targetSet.primary.path);
-        } else {
-          router.push(targetSet.primary.path);
-        }
-      }
-    },
-    [activePath, onNavigate, router]
-  );
-
-  const handleMouseLeave = () => {
-    if (isDragging) {
-      handlePointerUp();
-    }
-  };
-
-  useEffect(() => {
-    setCurrentSetIndex(getSetIndex(activePath));
-  }, [activePath, getSetIndex]);
-
-  const handleRouteSelect = (path: string) => {
-    if (hasSwipedRef.current) return;
+  const handleNavClick = (path: string) => {
     if (onNavigate) {
       onNavigate(path);
     } else {
@@ -133,239 +68,155 @@ export default function CurvedWheelNav({
     }
   };
 
-  // Horizontal touch / drag & rotary swipe handling
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true);
-    startXRef.current = e.clientX;
-    startYRef.current = e.clientY;
-    dragStartTimeRef.current = Date.now();
-    hasSwipedRef.current = false;
-    rotaryAccumulatorRef.current = 0;
-
-    if (navRef.current) {
-      const rect = navRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      lastAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    // Nav bar stays completely still when simply moving cursor - only moves during active drag
-    if (!isDragging) return;
-
-    const deltaX = e.clientX - startXRef.current;
-    const deltaY = e.clientY - startYRef.current;
-
-    if (Math.hypot(deltaX, deltaY) > 6) {
-      hasSwipedRef.current = true;
-    }
-
-    setDragOffset(deltaX);
-
-    // Rotary angular calculation during drag
-    if (navRef.current && lastAngleRef.current !== null) {
-      const rect = navRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const currAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-      let angleDiff = currAngle - lastAngleRef.current;
-      if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-      if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-      rotaryAccumulatorRef.current += angleDiff * (180 / Math.PI);
-      lastAngleRef.current = currAngle;
-    }
-
-    setWheelRotation(deltaX * 0.45 + rotaryAccumulatorRef.current * 0.4);
-  };
-
-  const handlePointerUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    const elapsed = Math.max(1, Date.now() - dragStartTimeRef.current);
-    const velocity = dragOffset / elapsed;
-    const totalRotary = rotaryAccumulatorRef.current;
-
-    const isSwipeLeft = dragOffset < -26 || velocity < -0.25 || totalRotary < -30;
-    const isSwipeRight = dragOffset > 26 || velocity > 0.25 || totalRotary > 30;
-
-    if (isSwipeLeft) {
-      rotateTo(currentSetIndex + 1);
-    } else if (isSwipeRight) {
-      rotateTo(currentSetIndex - 1);
-    }
-
-    setDragOffset(0);
-    setWheelRotation(0);
-    lastAngleRef.current = null;
-    rotaryAccumulatorRef.current = 0;
-
-    setTimeout(() => {
-      hasSwipedRef.current = false;
-    }, 120);
-  };
-
-  const handleWheel = (e: React.WheelEvent<HTMLElement>) => {
-    const now = Date.now();
-    if (now - wheelCooldownRef.current < 260) return;
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(delta) > 16) {
-      wheelCooldownRef.current = now;
-      if (delta > 0) {
-        rotateTo(currentSetIndex + 1);
-      } else {
-        rotateTo(currentSetIndex - 1);
-      }
-    }
-  };
-
-  const currentSet = NAVIGATION_SETS[currentSetIndex];
-  const cleanPath = activePath === "/" ? "/home" : activePath;
-
-  const isPrimaryActive = cleanPath === currentSet.primary.path;
-  const isCompanionActive = cleanPath === currentSet.companion.path;
-
   return (
     <nav
-      ref={navRef}
-      aria-label="CineConnect Curved Bottom Navigation"
-      className={`fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-md select-none pb-[env(safe-area-inset-bottom,10px)] ${className}`}
-      onMouseLeave={handleMouseLeave}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
+      aria-label="Bottom Navigation Bar"
+      className={className}
       style={{
-        transform: isDragging ? `translateX(${dragOffset * 0.15}px)` : "none",
-        transition: isDragging
-          ? "none"
-          : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
-        cursor: isDragging ? "grabbing" : "default",
-        touchAction: "pan-y",
+        position: "fixed",
+        bottom: "18px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 90,
+        pointerEvents: "auto",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        background: "rgba(12, 16, 26, 0.85)",
+        backdropFilter: "blur(28px)",
+        WebkitBackdropFilter: "blur(28px)",
+        border: "none",
+        boxShadow:
+          "0 14px 45px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.16)",
+        borderRadius: "9999px",
+        padding: "7px 12px",
+        userSelect: "none",
+        maxWidth: "calc(100vw - 28px)",
+        overflowX: "auto",
       }}
     >
-      {/* Transparent crystal glass curved dock */}
-      <div className="relative overflow-hidden rounded-t-[28px] border-t border-white/25 bg-gradient-to-b from-white/[0.06] to-transparent px-4 pt-2 pb-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-        {/* Subtle glass specular rim line */}
-        <div
-          className="absolute top-0 left-1/4 right-1/4 h-[1.5px] rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-          style={{
-            transform: isDragging ? `translateX(${dragOffset * 0.3}px)` : "none",
-            transition: isDragging ? "none" : "transform 0.45s ease",
-          }}
-        />
+      {NAVIGATION_ITEMS.map((item) => {
+        const cleanPath = activePath === "/" ? "/home" : activePath;
+        const isActive = cleanPath === item.path || (cleanPath.startsWith(item.path) && item.path !== "/home");
+        const IconComp = item.icon;
+        const isNotif = item.id === "notifications" && unreadNotificationsCount > 0;
+        const isMsg = item.id === "messages" && unreadMessagesCount > 0;
 
-        {/* 4 Set Indicator Dots */}
-        <div
-          className="absolute top-1.5 left-0 right-0 z-20 flex justify-center gap-1.5"
-          style={{
-            transform: isDragging ? `translateX(${dragOffset * 0.2}px)` : "none",
-            transition: isDragging ? "none" : "transform 0.45s ease",
-          }}
-        >
-          {NAVIGATION_SETS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              title={s.name}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => rotateTo(s.id)}
-              className={`h-1 rounded-full transition-all duration-200 ${
-                currentSetIndex === s.id
-                  ? "w-4 bg-[#FF9800] shadow-[0_0_6px_#FF9800]"
-                  : "w-1.5 bg-white/25 hover:bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Exactly Two Navigation Options on the Curved Dock */}
-        <div className="relative flex h-[68px] items-center justify-center px-4">
-          <div
-            className="relative flex flex-1 items-center justify-around max-w-[280px]"
+        return (
+          <button
+            key={item.id}
+            id={`bottom-nav-${item.id}`}
+            type="button"
+            onClick={() => handleNavClick(item.path)}
+            title={`${item.label} • ${item.subtitle}`}
             style={{
-              transform: isDragging
-                ? `translateX(${dragOffset}px) rotate(${wheelRotation * 0.45}deg)`
-                : "none",
-              transition: isDragging
-                ? "none"
-                : "transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.25)",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "3px",
+              padding: "7px 14px",
+              borderRadius: "9999px",
+              background: isActive
+                ? "linear-gradient(135deg, rgba(255, 165, 0, 0.24) 0%, rgba(255, 133, 0, 0.12) 100%)"
+                : "transparent",
+              border: "none",
+              color: isActive ? "#FFA500" : "#94A3B8",
+              cursor: "pointer",
+              transition: "all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+              outline: "none",
+              boxShadow: isActive ? "0 0 16px rgba(255, 165, 0, 0.3)" : "none",
+              minWidth: "64px",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                e.currentTarget.style.color = "#FFFFFF";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#94A3B8";
+                e.currentTarget.style.transform = "translateY(0)";
+              }
             }}
           >
-            {/* Option 1 (Primary) */}
-            <WheelOptionItem
-              item={currentSet.primary}
-              isActive={isPrimaryActive}
-              onSelect={() => handleRouteSelect(currentSet.primary.path)}
-            />
+            {/* Icon + Live Badge */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <IconComp
+                size={19}
+                color={isActive ? "#FFA500" : "currentColor"}
+                strokeWidth={isActive ? 2.5 : 1.9}
+              />
 
-            {/* Option 2 (Companion) */}
-            <WheelOptionItem
-              item={currentSet.companion}
-              isActive={isCompanionActive}
-              onSelect={() => handleRouteSelect(currentSet.companion.path)}
-            />
-          </div>
-        </div>
-      </div>
+              {/* Live Badge for Notifications */}
+              {isNotif && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-5px",
+                    right: "-8px",
+                    minWidth: "15px",
+                    height: "15px",
+                    borderRadius: "8px",
+                    background: "#FF3B5C",
+                    color: "#FFFFFF",
+                    fontSize: "9px",
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 2px",
+                    boxShadow: "0 0 8px rgba(255, 59, 92, 0.8)",
+                  }}
+                >
+                  {unreadNotificationsCount}
+                </span>
+              )}
+
+              {/* Live Badge for Messages */}
+              {isMsg && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-5px",
+                    right: "-8px",
+                    minWidth: "15px",
+                    height: "15px",
+                    borderRadius: "8px",
+                    background: "#FFA500",
+                    color: "#0D0E12",
+                    fontSize: "9px",
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 2px",
+                    boxShadow: "0 0 8px rgba(255, 165, 0, 0.8)",
+                  }}
+                >
+                  {unreadMessagesCount}
+                </span>
+              )}
+            </div>
+
+            {/* Label */}
+            <span
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: isActive ? 800 : 500,
+                letterSpacing: "0.01em",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
-
-function WheelOptionItem({
-  item,
-  isActive,
-  onSelect,
-}: {
-  item: NavPairItem;
-  isActive: boolean;
-  onSelect: () => void;
-}) {
-  const IconComponent = item.icon;
-
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
-      className="group relative flex flex-col items-center justify-center focus:outline-none z-10 cursor-pointer"
-      aria-label={`${item.label} (${isActive ? "Active" : "Inactive"})`}
-    >
-      {/* Active Option: Amber-orange circular button, white border, soft glow */}
-      {isActive ? (
-        <>
-          {/* Soft orange glow */}
-          <div className="absolute -top-1 h-12 w-12 rounded-full bg-[#FF9800]/25 blur-md pointer-events-none" />
-
-          {/* Compact Amber Circular Button */}
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-1.5 border-white bg-[#FF9800] text-[#08090C] shadow-[0_2px_12px_rgba(255,152,0,0.65)] transition-transform group-hover:scale-105 active:scale-95">
-            <IconComponent className="h-5 w-5 stroke-[2.4]" />
-          </div>
-
-          {/* Translucent capsule with amber border and white text directly below */}
-          <span className="mt-1 rounded-full border border-[#FF9800]/80 bg-black/45 px-2.5 py-0.5 text-[9.5px] font-extrabold tracking-wide text-[#F5F5F5] shadow-sm shadow-[#FF9800]/30">
-            {item.label}
-          </span>
-        </>
-      ) : (
-        /* Inactive Option: Sleek translucent dark circular button, thin border, muted icon */
-        <>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/[0.05] text-[#858995] transition-all hover:border-[#FF9800]/40 hover:text-[#F5F5F5] active:scale-95">
-            <IconComponent className="h-4.5 w-4.5 stroke-[1.8]" />
-          </div>
-
-          {/* Subtle secondary label */}
-          <span className="mt-1 text-[9.5px] font-semibold text-[#858995] transition-colors group-hover:text-[#F5F5F5]">
-            {item.label}
-          </span>
-        </>
-      )}
-    </button>
-  );
-}
-
