@@ -1,9 +1,8 @@
-"""Pydantic schemas for profile, skills, experience, and portfolio endpoints."""
-
+import re
 from datetime import date, datetime
 from uuid import UUID
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ---------- Profile ----------
@@ -14,10 +13,20 @@ class UserProfileUpdate(BaseModel):
     location: str | None = Field(None, min_length=1, max_length=255)
     bio: str | None = Field(None, max_length=2000)
     experience_years: int | None = Field(None, ge=0, le=70)
+    phone: str | None = Field(None, pattern=r"^\+?[1-9]\d{6,14}$")
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def sanitize_phone(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            cleaned = re.sub(r"[\s\-\(\)\.]+", "", v.strip())
+            return cleaned if cleaned else None
+        return v
 
     model_config = {
         "extra": "forbid"
     }
+
 
 
 # Backwards-compatible alias
@@ -167,19 +176,41 @@ class PortfolioItemUpdate(BaseModel):
     is_public: bool | None = None
 
 
-class PortfolioItemResponse(BaseModel):
-    """Portfolio item response."""
-    id: UUID
-    user_id: UUID
-    type: str
-    s3_url: str
+class PortfolioMediaCreate(BaseModel):
+    """Add a new media asset to portfolio_media."""
     title: str | None = None
-    description: str | None = None
-    is_public: bool = True
-    sort_order: int = 0
-    created_at: datetime
+    media_url: str = Field(..., min_length=1)
+    media_type: str | None = "photo"
+
+
+class PortfolioMediaUpdate(BaseModel):
+    """Update a media asset in portfolio_media."""
+    title: str | None = None
+    media_url: str | None = None
+    media_type: str | None = None
+
+
+class PortfolioMediaResponse(BaseModel):
+    """Portfolio media asset response matching public.portfolio_media."""
+    id: UUID
+    talent_id: UUID | None = None
+    title: str | None = None
+    media_url: str | None = None
+    media_type: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class PortfolioItemResponse(BaseModel):
+    """Portfolio item response matching database and client requirements."""
+    id: UUID
+    talent_id: UUID | None = None
+    title: str | None = None
+    media_url: str | None = None
+    media_type: str | None = None
+
+    model_config = {"from_attributes": True}
+
 
 
 class PortfolioReorderRequest(BaseModel):

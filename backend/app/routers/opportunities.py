@@ -4,12 +4,12 @@ from datetime import date
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_talent, require_production
 from app.models.user import User
 from app.models.production_house import ProductionHouse, Project
 from app.models.opportunity import Opportunity, Application
@@ -37,7 +37,7 @@ router = APIRouter(tags=["Opportunities & Applications"])
 )
 async def create_opportunity(
     data: OpportunityCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_production),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a casting or job opportunity under an owned project and production house."""
@@ -186,6 +186,41 @@ async def update_opportunity(
         )
 
 
+@router.delete(
+    "/opportunities/{opp_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete / close opportunity",
+)
+async def delete_opportunity(
+    opp_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete an opportunity (restricted to the production house owner)."""
+    opp_result = await db.execute(select(Opportunity).where(Opportunity.id == opp_id))
+    opp = opp_result.scalar_one_or_none()
+    if not opp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Opportunity not found",
+        )
+
+    ph_result = await db.execute(
+        select(ProductionHouse).where(ProductionHouse.id == opp.production_house_id)
+    )
+    ph = ph_result.scalar_one_or_none()
+    if not ph or ph.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this opportunity",
+        )
+
+    await db.execute(delete(Application).where(Application.opportunity_id == opp_id))
+    await db.delete(opp)
+    await db.commit()
+
+
+
 @router.get(
     "/opportunities/{opp_id}/applications",
     response_model=list[ApplicationResponse],
@@ -193,7 +228,7 @@ async def update_opportunity(
 )
 async def list_opportunity_applications(
     opp_id: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_production),
     db: AsyncSession = Depends(get_db),
 ):
     """List all talent applications submitted for this opportunity (restricted to company owner)."""
@@ -234,7 +269,7 @@ async def list_opportunity_applications(
 )
 async def apply_to_opportunity(
     data: ApplicationCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_talent),
     db: AsyncSession = Depends(get_db),
 ):
     """Submit an application for an open opportunity."""
@@ -308,7 +343,7 @@ async def apply_to_opportunity(
     summary="List current user's submitted applications",
 )
 async def list_my_applications(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_talent),
     db: AsyncSession = Depends(get_db),
 ):
     """Retrieve all applications submitted by the authenticated talent user."""
@@ -370,7 +405,7 @@ async def get_application(
 async def update_application_status(
     app_id: UUID,
     data: ApplicationStatusUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_production),
     db: AsyncSession = Depends(get_db),
 ):
     """Update application review status (e.g. shortlisted, accepted, rejected). Restricted to company owner."""

@@ -43,21 +43,35 @@ class User(Base):
     )
 
     # Relationships
-    profile: Mapped[Optional["Profile"]] = relationship(
-        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    portfolio_media: Mapped[list["PortfolioMedia"]] = relationship(
+        back_populates="talent", cascade="all, delete-orphan"
     )
-    skills: Mapped[list["UserSkill"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    experiences: Mapped[list["Experience"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+
+
+
+class PortfolioMedia(Base):
+    """User portfolio media asset stored in public.portfolio_media."""
+    __tablename__ = "portfolio_media"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    portfolio_items: Mapped[list["PortfolioItem"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+    talent_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
+    title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    media_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    media_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
+    # Relationships
+    talent: Mapped[Optional["User"]] = relationship(back_populates="portfolio_media")
 
 
 class Profile(Base):
+
     """Extended user profile with craft, location, and AI embedding."""
     __tablename__ = "profiles"
 
@@ -85,7 +99,7 @@ class Profile(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="profile")
+    user: Mapped["User"] = relationship()
 
 
 class Skill(Base):
@@ -97,7 +111,7 @@ class Skill(Base):
     category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
     # Relationships
-    users: Mapped[list["UserSkill"]] = relationship(back_populates="skill")
+    users: Mapped[list["UserSkill"]] = relationship()
 
 
 class UserSkill(Base):
@@ -113,8 +127,8 @@ class UserSkill(Base):
     proficiency: Mapped[str] = mapped_column(String(20), default="intermediate")
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="skills")
-    skill: Mapped["Skill"] = relationship(back_populates="users")
+    user: Mapped["User"] = relationship()
+    skill: Mapped["Skill"] = relationship(overlaps="users")
 
 
 class Experience(Base):
@@ -136,7 +150,7 @@ class Experience(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="experiences")
+    user: Mapped["User"] = relationship()
 
 
 class PortfolioItem(Base):
@@ -158,4 +172,4 @@ class PortfolioItem(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="portfolio_items")
+    user: Mapped["User"] = relationship()

@@ -3,11 +3,11 @@
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_production
 from app.models.user import User
 from app.models.production_house import ProductionHouse, Project
 from app.schemas.production_house import (
@@ -34,7 +34,7 @@ router = APIRouter(tags=["Production Houses & Projects"])
 )
 async def create_production_house(
     data: ProductionHouseCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_production),
     db: AsyncSession = Depends(get_db),
 ):
     """Register a new production house owned by the authenticated user."""
@@ -139,6 +139,55 @@ async def update_production_house(
         )
 
 
+@router.delete(
+    "/production-houses/{ph_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete production house",
+)
+async def delete_production_house(
+    ph_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a production house (restricted to the owner)."""
+    result = await db.execute(select(ProductionHouse).where(ProductionHouse.id == ph_id))
+    ph = result.scalar_one_or_none()
+    if not ph:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Production house not found",
+        )
+
+    if ph.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this production house",
+        )
+
+    from app.models.social import Collaboration
+    from app.models.opportunity import Opportunity, Application
+
+    # Delete all project-related records first
+    proj_ids = (await db.execute(select(Project.id).where(Project.production_house_id == ph_id))).scalars().all()
+    if proj_ids:
+        opp_ids = (await db.execute(select(Opportunity.id).where(Opportunity.project_id.in_(proj_ids)))).scalars().all()
+        if opp_ids:
+            await db.execute(delete(Application).where(Application.opportunity_id.in_(opp_ids)))
+            await db.execute(delete(Opportunity).where(Opportunity.id.in_(opp_ids)))
+        await db.execute(delete(Collaboration).where(Collaboration.project_id.in_(proj_ids)))
+        await db.execute(delete(Project).where(Project.id.in_(proj_ids)))
+
+    # Also clean up any opportunities tied directly to this ph
+    ph_opp_ids = (await db.execute(select(Opportunity.id).where(Opportunity.production_house_id == ph_id))).scalars().all()
+    if ph_opp_ids:
+        await db.execute(delete(Application).where(Application.opportunity_id.in_(ph_opp_ids)))
+        await db.execute(delete(Opportunity).where(Opportunity.id.in_(ph_opp_ids)))
+
+    await db.delete(ph)
+    await db.commit()
+
+
+
 # ==========================================
 # PROJECTS ENDPOINTS
 # ==========================================
@@ -151,7 +200,7 @@ async def update_production_house(
 )
 async def create_project(
     data: ProjectCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_production),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new project under a production house owned by the current user."""
@@ -275,3 +324,46 @@ async def update_project(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update project",
         )
+
+
+@router.delete(
+    "/projects/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete project",
+)
+async def delete_project(
+    project_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a film project (restricted to the production house owner)."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    ph_result = await db.execute(
+        select(ProductionHouse).where(ProductionHouse.id == project.production_house_id)
+    )
+    ph = ph_result.scalar_one_or_none()
+    if not ph or ph.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this project",
+        )
+
+    from app.models.social import Collaboration
+    from app.models.opportunity import Opportunity, Application
+
+    opp_ids = (await db.execute(select(Opportunity.id).where(Opportunity.project_id == project_id))).scalars().all()
+    if opp_ids:
+        await db.execute(delete(Application).where(Application.opportunity_id.in_(opp_ids)))
+        await db.execute(delete(Opportunity).where(Opportunity.id.in_(opp_ids)))
+
+    await db.execute(delete(Collaboration).where(Collaboration.project_id == project_id))
+    await db.delete(project)
+    await db.commit()
+
