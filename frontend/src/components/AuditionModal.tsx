@@ -7,7 +7,7 @@ import { CastingCall } from "@/lib/mockData";
 interface AuditionModalProps {
   casting: CastingCall | null;
   onClose: () => void;
-  onSubmitSuccess: (castingId: string, roleName: string, productionHouse: string) => void;
+  onSubmitSuccess?: (castingId: string, roleName: string, productionHouse: string) => void;
 }
 
 export default function AuditionModal({ casting, onClose, onSubmitSuccess }: AuditionModalProps) {
@@ -27,7 +27,7 @@ export default function AuditionModal({ casting, onClose, onSubmitSuccess }: Aud
       setIsSubmitting(false);
       setSubmitted(true);
       setTimeout(() => {
-        onSubmitSuccess(casting.id, casting.characterName || casting.title, casting.productionHouse);
+        onSubmitSuccess?.(casting.id, casting.characterName || casting.title, casting.productionHouse);
         onClose();
       }, 1500);
     }, 1000);
@@ -230,7 +230,7 @@ export default function AuditionModal({ casting, onClose, onSubmitSuccess }: Aud
                 </label>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                   {[
-                    { id: "headshot-1", title: "Commercial Studio Headshot", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80" },
+                    { id: "headshot-1", title: "Commercial Studio Headshot", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80" },
                     { id: "headshot-2", title: "Dramatic / Intense Look", url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80" },
                     { id: "headshot-3", title: "Period Character Test", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" },
                   ].map((shot) => (

@@ -69,6 +69,11 @@ engine = _active_engine
 async_session = _active_sessionmaker
 
 
+def AsyncSessionLocal() -> AsyncSession:
+    """Return a new AsyncSession from the currently active sessionmaker."""
+    return _active_sessionmaker()
+
+
 async def init_db():
     """Initialize database tables and seed sample data if needed."""
     global _active_engine, _active_sessionmaker, engine, async_session

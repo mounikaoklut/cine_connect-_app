@@ -1,4 +1,13 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+interface CapacitorConfig {
+  appId: string;
+  appName: string;
+  webDir: string;
+  server?: {
+    androidScheme?: string;
+    url?: string;
+    cleartext?: boolean;
+  };
+}
 
 const config: CapacitorConfig = {
   appId: 'com.cineconnect.app',

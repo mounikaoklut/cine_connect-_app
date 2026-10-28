@@ -153,7 +153,7 @@ export default function ProfilePortal({
               <div style={{ display: "flex", gap: "28px", alignItems: "center", flexWrap: "wrap" }}>
                 <div style={{ position: "relative" }}>
                   <img
-                    src={userData.profile?.photo_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80"}
+                    src={userData.profile?.photo_url || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80"}
                     alt={userData.profile?.name}
                     style={{
                       width: "128px",

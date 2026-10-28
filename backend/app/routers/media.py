@@ -18,6 +18,11 @@ router = APIRouter(prefix="/media", tags=["Media Service"])
     response_model=UploadUrlResponse,
     summary="Get presigned S3/MinIO upload URL for direct file upload",
 )
+@router.post(
+    "/presigned-url",
+    response_model=UploadUrlResponse,
+    summary="Get presigned S3/MinIO upload URL (alias for /upload-url)",
+)
 async def get_upload_url(
     data: UploadUrlRequest,
     current_user: User = Depends(get_current_user),

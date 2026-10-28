@@ -46,6 +46,9 @@ class User(Base):
     portfolio_media: Mapped[list["PortfolioMedia"]] = relationship(
         back_populates="talent", cascade="all, delete-orphan"
     )
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 
