@@ -307,10 +307,10 @@ export default function SettingsPage() {
     } catch (e) {
       console.error("Logout error:", e);
     }
-    triggerToast("Logged out successfully. Redirecting to home... 🚪");
+    triggerToast("Logged out successfully. Redirecting to login... 🚪");
     setTimeout(() => {
       if (typeof window !== "undefined") {
-        window.location.href = "/";
+        window.location.href = "/login";
       }
     }, 600);
   };

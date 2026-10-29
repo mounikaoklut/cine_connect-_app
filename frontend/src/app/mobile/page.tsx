@@ -820,7 +820,7 @@ export default function MobileAppSimulatorPage() {
   const [activeShowreel, setActiveShowreel] = useState<TalentItem | null>(null);
   const [activePitch, setActivePitch] = useState<PitchDeck | null>(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [deviceModel, setDeviceModel] = useState<"iphone" | "android" | "fullscreen">("iphone");
+  const [deviceModel, setDeviceModel] = useState<"iphone" | "android" | "fullscreen">("android");
   const [followedAuthors, setFollowedAuthors] = useState<string[]>([]);
   const [savedPostIds, setSavedPostIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -9224,11 +9224,11 @@ export default function MobileAppSimulatorPage() {
                         } catch (err) {
                           console.error("Logout error:", err);
                         }
-                        setToastMessage("Signed out successfully. Returning to Home... 🚪");
+                        setToastMessage("Signed out successfully. Redirecting to Login... 🚪");
                         setActiveTab("stream");
                         setTimeout(() => {
                           if (typeof window !== "undefined") {
-                            window.location.href = "/";
+                            window.location.href = "/login";
                           }
                         }, 700);
                       }}
@@ -9277,7 +9277,7 @@ export default function MobileAppSimulatorPage() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <a
-            href="/"
+            href="/home"
             style={{
               display: "inline-flex",
               alignItems: "center",
