@@ -77,6 +77,7 @@ import CineStoriesSection from "@/components/CineStoriesSection";
 import FeedVideoPlayer from "@/components/FeedVideoPlayer";
 import InstagramCommentsModal, { CommentItem } from "@/components/InstagramCommentsModal";
 import PostActionMenu from "@/components/PostActionMenu";
+import { ApiClient } from "@/lib/api";
 
 interface CineInstagramReelCardProps {
   reel: {
@@ -9209,8 +9210,27 @@ export default function MobileAppSimulatorPage() {
                     <button
                       onClick={() => {
                         setShowLogoutConfirmSheet(false);
-                        setToastMessage("Tokens cleared. Signed out successfully 🚪");
-                        setTimeout(() => setToastMessage(null), 2500);
+                        try {
+                          ApiClient.clearAuth();
+                          if (typeof window !== "undefined") {
+                            localStorage.removeItem("cineconnect_access_token");
+                            localStorage.removeItem("cineconnect_refresh_token");
+                            localStorage.removeItem("cineconnect_user");
+                            localStorage.removeItem("cineconnect_active_user");
+                            localStorage.removeItem("cineconnect_session");
+                            localStorage.removeItem("cineconnect_selected_portal");
+                            sessionStorage.clear();
+                          }
+                        } catch (err) {
+                          console.error("Logout error:", err);
+                        }
+                        setToastMessage("Signed out successfully. Returning to Home... 🚪");
+                        setActiveTab("stream");
+                        setTimeout(() => {
+                          if (typeof window !== "undefined") {
+                            window.location.href = "/";
+                          }
+                        }, 700);
                       }}
                       style={{ flex: 2, background: "#F43F5E", border: "none", borderRadius: "8px", padding: "10px", color: "#FFF", fontSize: "0.75rem", fontWeight: 800, cursor: "pointer" }}
                     >
