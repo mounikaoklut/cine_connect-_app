@@ -292,6 +292,29 @@ export default function SettingsPage() {
     }
   };
 
+  const handleLogout = () => {
+    try {
+      ApiClient.clearAuth();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cineconnect_access_token");
+        localStorage.removeItem("cineconnect_refresh_token");
+        localStorage.removeItem("cineconnect_user");
+        localStorage.removeItem("cineconnect_active_user");
+        localStorage.removeItem("cineconnect_session");
+        localStorage.removeItem("cineconnect_selected_portal");
+        sessionStorage.clear();
+      }
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+    triggerToast("Logged out successfully. Redirecting to home... 🚪");
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    }, 600);
+  };
+
   const handleExportData = async () => {
     try {
       const res = await ApiClient.exportUserData();
@@ -410,7 +433,7 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
               <button
                 onClick={handleSaveSettings}
                 style={{
@@ -431,6 +454,35 @@ export default function SettingsPage() {
               >
                 <Save size={16} />
                 <span>Save All Changes</span>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "rgba(244, 63, 94, 0.12)",
+                  color: "#F43F5E",
+                  border: "1px solid rgba(244, 63, 94, 0.35)",
+                  borderRadius: "10px",
+                  padding: "12px 18px",
+                  fontSize: "0.86rem",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#F43F5E";
+                  e.currentTarget.style.color = "#FFFFFF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(244, 63, 94, 0.12)";
+                  e.currentTarget.style.color = "#F43F5E";
+                }}
+              >
+                <LogOut size={16} />
+                <span>Log Out</span>
               </button>
             </div>
           </div>
@@ -1188,7 +1240,36 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      {!sess.is_current && (
+                      {sess.is_current ? (
+                        <button
+                          onClick={handleLogout}
+                          style={{
+                            background: "rgba(244, 63, 94, 0.12)",
+                            border: "1px solid rgba(244, 63, 94, 0.35)",
+                            color: "#F43F5E",
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#F43F5E";
+                            e.currentTarget.style.color = "#FFFFFF";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "rgba(244, 63, 94, 0.12)";
+                            e.currentTarget.style.color = "#F43F5E";
+                          }}
+                        >
+                          <LogOut size={12} />
+                          Log Out
+                        </button>
+                      ) : (
                         <button
                           onClick={() => handleRevokeSession(sess.session_id)}
                           style={{
@@ -1434,6 +1515,48 @@ export default function SettingsPage() {
                     }}
                   >
                     Deactivate Profile
+                  </button>
+                </div>
+              </div>
+
+              {/* Sign Out of CineConnect Card */}
+              <div style={{ background: "#131722", border: "1px solid rgba(244, 63, 94, 0.25)", borderRadius: "16px", padding: "24px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+                  <div>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: "0 0 6px", color: "#F43F5E", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <LogOut size={18} /> Sign Out of CineConnect
+                    </h3>
+                    <p style={{ color: "#94A3B8", fontSize: "0.82rem", margin: 0, maxWidth: "560px", lineHeight: 1.5 }}>
+                      Sign out of your active session on this device. All local access tokens, cached studio credentials, and auth session state will be revoked immediately.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      background: "rgba(244, 63, 94, 0.15)",
+                      border: "1px solid #F43F5E",
+                      color: "#F43F5E",
+                      padding: "10px 20px",
+                      borderRadius: "8px",
+                      fontSize: "0.82rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#F43F5E";
+                      e.currentTarget.style.color = "#FFFFFF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "rgba(244, 63, 94, 0.15)";
+                      e.currentTarget.style.color = "#F43F5E";
+                    }}
+                  >
+                    <LogOut size={15} />
+                    Log Out Now
                   </button>
                 </div>
               </div>
