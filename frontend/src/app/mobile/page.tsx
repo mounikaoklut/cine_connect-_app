@@ -918,8 +918,8 @@ export default function MobileAppSimulatorPage() {
           (homeComposerType === "showreel"
             ? "Audition tape & monologue breakdown shared with casting directors."
             : homeComposerType === "casting"
-            ? "New casting call breakdown posted for upcoming feature project."
-            : "Update from set with the filmmaking community."),
+              ? "New casting call breakdown posted for upcoming feature project."
+              : "Update from set with the filmmaking community."),
         mediaUrl: homeComposerMediaUrl.trim() || (isVideo ? "/reels/reel1.mp4" : undefined),
         mediaType: isVideo ? "video" : "image",
         tags: homeComposerTags.length > 0 ? homeComposerTags : ["#AuditionTape", "#Monologue"],
@@ -2169,10 +2169,10 @@ export default function MobileAppSimulatorPage() {
                         homeComposerType === "showreel"
                           ? "Share details about your audition tape (monologue title, character arc, accent, or scene context)..."
                           : homeComposerType === "casting"
-                          ? "Describe character requirements, audition sides, compensation, and shoot dates..."
-                          : homeComposerType === "pitch"
-                          ? "Logline, genre, character synopsis, and creative vision..."
-                          : "Share a wrap update, upcoming premiere, or audition milestone with the community..."
+                            ? "Describe character requirements, audition sides, compensation, and shoot dates..."
+                            : homeComposerType === "pitch"
+                              ? "Logline, genre, character synopsis, and creative vision..."
+                              : "Share a wrap update, upcoming premiere, or audition milestone with the community..."
                       }
                       style={{
                         width: "100%",
