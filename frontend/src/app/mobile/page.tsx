@@ -820,7 +820,7 @@ export default function MobileAppSimulatorPage() {
   const [activeShowreel, setActiveShowreel] = useState<TalentItem | null>(null);
   const [activePitch, setActivePitch] = useState<PitchDeck | null>(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [deviceModel, setDeviceModel] = useState<"iphone" | "android" | "fullscreen">("android");
+  const [deviceModel, setDeviceModel] = useState<"android">("android");
   const [followedAuthors, setFollowedAuthors] = useState<string[]>([]);
   const [savedPostIds, setSavedPostIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -9267,68 +9267,32 @@ export default function MobileAppSimulatorPage() {
           <Smartphone size={22} color="var(--accent-gold)" />
           <div>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff" }}>
-              CineConnect Mobile App Experience
+              CineConnect Android App
             </h2>
             <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-              Interactive mobile simulator running the Flutter & native mobile UI
+              Native Android experience running Material 3 mobile UI
             </span>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <a
-            href="/home"
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span
             style={{
+              background: "rgba(16, 185, 129, 0.12)",
+              color: "#10B981",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              padding: "4px 12px",
+              borderRadius: "9999px",
+              fontSize: "0.75rem",
+              fontWeight: 700,
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              color: "var(--text-secondary)",
-              fontSize: "0.85rem",
-              textDecoration: "none",
             }}
           >
-            <Laptop size={15} /> Switch to Desktop Web
-          </a>
-
-          <div
-            style={{
-              display: "inline-flex",
-              background: "rgba(255,255,255,0.06)",
-              padding: "3px",
-              borderRadius: "8px",
-            }}
-          >
-            <button
-              onClick={() => setDeviceModel("iphone")}
-              style={{
-                background: deviceModel === "iphone" ? "var(--accent-gold)" : "transparent",
-                color: deviceModel === "iphone" ? "#000" : "#fff",
-                border: "none",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              iPhone
-            </button>
-            <button
-              onClick={() => setDeviceModel("android")}
-              style={{
-                background: deviceModel === "android" ? "var(--accent-gold)" : "transparent",
-                color: deviceModel === "android" ? "#000" : "#fff",
-                border: "none",
-                padding: "4px 10px",
-                borderRadius: "6px",
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Android
-            </button>
-          </div>
+            <Smartphone size={13} />
+            Android Edition
+          </span>
         </div>
       </div>
 
@@ -9339,7 +9303,7 @@ export default function MobileAppSimulatorPage() {
           height: "780px",
           margin: "0 auto",
           background: "#080a0f",
-          borderRadius: deviceModel === "iphone" ? "48px" : "28px",
+          borderRadius: "28px",
           border: "8px solid #1c2230",
           boxShadow: "0 25px 60px -10px rgba(0,0,0,0.9), 0 0 25px rgba(245, 158, 11, 0.25)",
           display: "flex",
@@ -9348,7 +9312,7 @@ export default function MobileAppSimulatorPage() {
           overflow: "hidden",
         }}
       >
-        {/* Notch / Dynamic Island */}
+        {/* Android Punch Hole & Status Bar */}
         <div
           style={{
             height: "44px",
@@ -9365,19 +9329,15 @@ export default function MobileAppSimulatorPage() {
           }}
         >
           <span>9:41</span>
-          {deviceModel === "iphone" ? (
-            <div
-              style={{
-                width: "90px",
-                height: "22px",
-                background: "#000",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            />
-          ) : (
-            <div style={{ width: "10px", height: "10px", background: "#000", borderRadius: "50%" }} />
-          )}
+          <div
+            style={{
+              width: "11px",
+              height: "11px",
+              background: "#000",
+              borderRadius: "50%",
+              border: "1.5px solid rgba(255,255,255,0.2)",
+            }}
+          />
           <span style={{ fontSize: "0.7rem", color: "var(--accent-gold)" }}>5G 100%</span>
         </div>
 

@@ -8,7 +8,8 @@ export async function getSupabaseServerClient() {
   }
 
   const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
+  const supabaseUrl = rawUrl.replace(/\/+$/, "");
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {

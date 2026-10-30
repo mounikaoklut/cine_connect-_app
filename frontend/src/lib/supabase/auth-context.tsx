@@ -225,33 +225,89 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // If Supabase credentials are not yet configured in .env.local
     // Check if FastAPI backend is reachable
+    let backendErrorMessage = "";
+    let isNetworkFailure = false;
+
     try {
-      const res = await ApiClient.login({ email, password });
+      const res = await ApiClient.login({ email: email.trim(), password });
       if (res && res.user) {
         const loggedInUser: CineUser = {
           id: res.user.id,
           email: res.user.email,
           phone: res.user.phone,
           name: res.user.name || email.split("@")[0],
-          companyName: portal === "production" ? res.user.name : undefined,
+          companyName: portal === "production" ? (res.user.production_house_name || res.user.name) : undefined,
           role: portal,
-          emailConfirmed: res.user.email_verified,
+          emailConfirmed: Boolean(res.user.email_verified),
         };
         setUser(loggedInUser);
         setSelectedPortal(portal);
         if (rememberMe) {
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedInUser));
+        } else {
+          sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedInUser));
         }
         return { success: true };
       }
-    } catch {
-      // Backend not running either
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("ECONNREFUSED") ||
+        msg.includes("fetch failed")
+      ) {
+        isNetworkFailure = true;
+      } else {
+        backendErrorMessage = msg;
+      }
     }
 
-    // Explicit user-friendly message when auth service is unreachable
+    if (backendErrorMessage) {
+      return {
+        success: false,
+        error: backendErrorMessage,
+      };
+    }
+
+    // If backend is offline or unreachable, allow demo account sign-in
+    const cleanEmail = email.trim().toLowerCase();
+    if (
+      cleanEmail === "kabir.mehra@cineconnect.com" ||
+      cleanEmail === "talent@cineconnect.com" ||
+      cleanEmail === "producer@cineconnect.com" ||
+      cleanEmail === "production@cineconnect.com"
+    ) {
+      const isProduction = cleanEmail.includes("producer") || cleanEmail.includes("production") || portal === "production";
+      const demoUser: CineUser = {
+        id: isProduction ? "e4a18295-e224-4b55-8d92-d4009af34e99" : "d3b07384-d113-4a44-9c81-c30089f23d88",
+        email: cleanEmail,
+        phone: isProduction ? "+91 98200 54321" : "+91 98200 12345",
+        name: isProduction ? "Shadow Reel Studios" : "Kabir Mehra",
+        companyName: isProduction ? "Shadow Reel Studios" : undefined,
+        role: isProduction ? "production" : "talent",
+        emailConfirmed: true,
+      };
+      setUser(demoUser);
+      setSelectedPortal(demoUser.role);
+      if (rememberMe) {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(demoUser));
+      } else {
+        sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(demoUser));
+      }
+      return { success: true };
+    }
+
+    if (isNetworkFailure) {
+      return {
+        success: false,
+        error: "Backend server unreachable at http://localhost:8000. Please start the backend or sign in with demo credentials (kabir.mehra@cineconnect.com / Password123!).",
+      };
+    }
+
     return {
       success: false,
-      error: "Authentication service is temporarily unavailable. Please verify your credentials or try again later.",
+      error: "Invalid email or password. Please verify your credentials.",
     };
   };
 
@@ -329,9 +385,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Fallback attempt with backend API if running
+    let backendRegError = "";
+    let isRegNetworkFailure = false;
     try {
       const res = await ApiClient.register({
-        email,
+        email: email.trim(),
         password,
         name: (name || companyName || email.split("@")[0]),
       });
@@ -350,8 +408,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
         return { success: true, confirmationRequired: false };
       }
-    } catch {
-      // Backend not running
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("ECONNREFUSED") ||
+        msg.includes("fetch failed")
+      ) {
+        isRegNetworkFailure = true;
+      } else {
+        backendRegError = msg;
+      }
+    }
+
+    if (backendRegError) {
+      return { success: false, error: backendRegError };
+    }
+
+    if (isRegNetworkFailure) {
+      // Local development registration fallback
+      const newUser: CineUser = {
+        id: "usr-" + Date.now(),
+        email: email.trim(),
+        phone,
+        name: name || companyName || email.split("@")[0],
+        companyName,
+        role: portal,
+        emailConfirmed: true,
+      };
+      setUser(newUser);
+      setSelectedPortal(portal);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+      return { success: true, confirmationRequired: false };
     }
 
     return {

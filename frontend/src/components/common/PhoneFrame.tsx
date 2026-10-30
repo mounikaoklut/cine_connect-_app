@@ -28,11 +28,23 @@ export function PhoneFrame({ children }: PhoneFrameProps) {
     <div className="phone-preview-backdrop">
       {/* Outer Phone Hardware Frame */}
       <div className="phone-device-chassis">
-        {/* Dynamic Island / Notch */}
-        <div className="phone-dynamic-island" aria-hidden="true">
-          <div className="phone-camera-lens" />
-          <div className="phone-speaker-slit" />
-        </div>
+        {/* Android Punch Hole Camera */}
+        <div
+          style={{
+            position: "absolute",
+            top: "14px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "12px",
+            height: "12px",
+            borderRadius: "50%",
+            background: "#030509",
+            border: "1.5px solid rgba(255, 255, 255, 0.18)",
+            zIndex: 50,
+            boxShadow: "inset 0 0 2px rgba(245, 247, 255, 0.2)",
+          }}
+          aria-hidden="true"
+        />
 
         {/* Realistic Mobile Status Bar */}
         <header className="phone-status-bar" aria-label="Device Status Bar">
