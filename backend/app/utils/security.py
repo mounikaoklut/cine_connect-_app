@@ -10,11 +10,12 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 import re
+import bcrypt
 from app.config import get_settings
 
 settings = get_settings()
 
-# Password hashing context — bcrypt
+# Password hashing context — bcrypt fallback
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -33,13 +34,27 @@ def normalize_phone(phone: str) -> str:
 
 
 def hash_password(password: str) -> str:
-    """Hash a plain-text password."""
-    return pwd_context.hash(password)
+    """Hash a plain-text password safely using bcrypt."""
+    try:
+        pw_bytes = password.encode("utf-8")[:72]
+        return bcrypt.hashpw(pw_bytes, bcrypt.gensalt()).decode("utf-8")
+    except Exception:
+        return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password against its hash safely supporting direct bcrypt and passlib."""
+    try:
+        pw_bytes = plain_password.encode("utf-8")[:72]
+        h_bytes = hashed_password.encode("utf-8")
+        if bcrypt.checkpw(pw_bytes, h_bytes):
+            return True
+    except Exception:
+        pass
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 
 def create_access_token(user_id: UUID, extra_claims: dict[str, Any] | None = None) -> str:

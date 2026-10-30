@@ -128,15 +128,27 @@ async def init_db():
             await session.commit()
             print("Seeded skills catalog into local database.")
 
+<<<<<<< Updated upstream
         # Seed default talent and production demo accounts
         from app.models.user import User
+=======
+        # Seed default demo accounts (Talent and Production)
+        from app.models.user import User, Profile
+        from app.models.production import ProductionHouse
+>>>>>>> Stashed changes
         from app.utils.security import hash_password
         import uuid
 
         talent_res = await session.execute(select(User).where(User.email == "kabir.mehra@cineconnect.com"))
         if not talent_res.scalar_one_or_none():
+<<<<<<< Updated upstream
             demo_talent = User(
                 id=uuid.UUID("d3b07384-d113-4a44-9c81-c30089f23d88"),
+=======
+            kabir_id = uuid.UUID("d3b07384-d113-4a44-9c81-c30089f23d88")
+            demo_talent = User(
+                id=kabir_id,
+>>>>>>> Stashed changes
                 email="kabir.mehra@cineconnect.com",
                 password_hash=hash_password("Password123!"),
                 account_type="talent",
@@ -149,11 +161,32 @@ async def init_db():
                 identity_verified=True,
             )
             session.add(demo_talent)
+<<<<<<< Updated upstream
 
         prod_res = await session.execute(select(User).where(User.email == "producer@cineconnect.com"))
         if not prod_res.scalar_one_or_none():
             demo_prod = User(
                 id=uuid.UUID("e4a18295-e224-4b55-8d92-d4009af34e99"),
+=======
+            profile = Profile(
+                user_id=kabir_id,
+                name="Kabir Mehra",
+                bio="Method actor with 8+ years across independent cinema and OTT thrillers.",
+                photo_url="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80",
+                primary_craft="Actor",
+                city="Mumbai",
+                state="Maharashtra",
+                travel_radius_km=500,
+                completeness_score=85,
+            )
+            session.add(profile)
+
+        prod_res = await session.execute(select(User).where(User.email == "producer@cineconnect.com"))
+        if not prod_res.scalar_one_or_none():
+            prod_id = uuid.UUID("e4a18295-e224-4b55-8d92-d4009af34e99")
+            demo_prod = User(
+                id=prod_id,
+>>>>>>> Stashed changes
                 email="producer@cineconnect.com",
                 password_hash=hash_password("Password123!"),
                 account_type="production",
@@ -166,9 +199,24 @@ async def init_db():
                 identity_verified=True,
             )
             session.add(demo_prod)
+<<<<<<< Updated upstream
 
         await session.commit()
         print("Seeded default accounts into database.")
+=======
+            ph = ProductionHouse(
+                id=uuid.uuid4(),
+                user_id=prod_id,
+                company_name="Shadow Reel Studios",
+                description="Independent feature film & commercial production house.",
+                location="Mumbai, Maharashtra",
+                specialization="Feature Films & OTT Series",
+            )
+            session.add(ph)
+
+        await session.commit()
+        print("Default accounts verified/seeded into database.")
+>>>>>>> Stashed changes
 
 
 async def get_db() -> AsyncSession:
