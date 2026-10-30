@@ -128,6 +128,48 @@ async def init_db():
             await session.commit()
             print("Seeded skills catalog into local database.")
 
+        # Seed default talent and production demo accounts
+        from app.models.user import User
+        from app.utils.security import hash_password
+        import uuid
+
+        talent_res = await session.execute(select(User).where(User.email == "kabir.mehra@cineconnect.com"))
+        if not talent_res.scalar_one_or_none():
+            demo_talent = User(
+                id=uuid.UUID("d3b07384-d113-4a44-9c81-c30089f23d88"),
+                email="kabir.mehra@cineconnect.com",
+                password_hash=hash_password("Password123!"),
+                account_type="talent",
+                full_name="Kabir Mehra",
+                role="Actor",
+                location="Mumbai, Maharashtra",
+                phone="+91 98200 12345",
+                email_verified=True,
+                phone_verified=True,
+                identity_verified=True,
+            )
+            session.add(demo_talent)
+
+        prod_res = await session.execute(select(User).where(User.email == "producer@cineconnect.com"))
+        if not prod_res.scalar_one_or_none():
+            demo_prod = User(
+                id=uuid.UUID("e4a18295-e224-4b55-8d92-d4009af34e99"),
+                email="producer@cineconnect.com",
+                password_hash=hash_password("Password123!"),
+                account_type="production",
+                full_name="Shadow Reel Studios",
+                role="Producer / Director",
+                location="Mumbai, Maharashtra",
+                phone="+91 98200 54321",
+                email_verified=True,
+                phone_verified=True,
+                identity_verified=True,
+            )
+            session.add(demo_prod)
+
+        await session.commit()
+        print("Seeded default accounts into database.")
+
 
 async def get_db() -> AsyncSession:
     """Dependency that yields an async database session."""
